@@ -234,4 +234,46 @@ export const postPet = async (req, res) => {
     }
 };
 
+export const getAllPets = async (req, res) => {
+    try {
+        const { classification, age, gender, breed, location } = req.query;
+        
+        // Build filter object
+        const filter = {};
+        
+        if (classification) {
+            filter.classification = classification;
+        }
+        
+        if (age && age.length > 0) {
+            filter.age = { $in: age.split(',') };
+        }
+        
+        if (gender && gender.length > 0) {
+            filter.gender = { $in: gender.split(',') };
+        }
+        
+        if (breed) {
+            filter.breed = breed;
+        }
+        
+        if (location) {
+            filter.location = location;
+        }
+
+        const pets = await Pet.find(filter).sort({ createdAt: -1 });
+        
+        res.status(200).json({
+            success: true,
+            pets
+        });
+    } catch (error) {
+        console.error('Error fetching pets:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching pets"
+        });
+    }
+};
+
 
