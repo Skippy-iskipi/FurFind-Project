@@ -241,7 +241,7 @@ export const getAllPets = async (req, res) => {
         // Build filter object
         const filter = {};
         
-        if (classification) {
+        if (classification && classification !== 'All') {
             filter.classification = classification;
         }
         
@@ -261,17 +261,59 @@ export const getAllPets = async (req, res) => {
             filter.location = location;
         }
 
-        const pets = await Pet.find(filter).sort({ createdAt: -1 });
+        // Make sure Pet model is properly imported
+        const pets = await Pet.find(filter)
+            .populate({
+                path: 'userId',
+                select: 'name profileImage'
+            })
+            .sort({ createdAt: -1 });
+
+        // Add error logging
+        console.log('Fetched pets:', pets);
         
         res.status(200).json({
             success: true,
             pets
         });
     } catch (error) {
-        console.error('Error fetching pets:', error);
+        // Detailed error logging
+        console.error('Error in getAllPets:', error);
         res.status(500).json({
             success: false,
-            message: "Error fetching pets"
+            message: "Error fetching pets",
+            error: error.message // Include error message for debugging
+        });
+    }
+};
+
+export const getUserById = async (req, res) => {
+    try {
+        // Log the incoming request
+        console.log('Getting user by ID:', req.params.userId);
+        
+        const user = await User.findById(req.params.userId).select('name profileImage');
+        
+        // Log the found user
+        console.log('Found user:', user);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching user details",
+            error: error.message
         });
     }
 };
