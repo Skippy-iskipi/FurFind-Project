@@ -9,6 +9,7 @@ import {
 	resetPassword,
 	checkAuth,
 	getAllPets,
+	getUserById,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { upload } from '../middleware/multer.js';
@@ -29,5 +30,6 @@ router.post("/reset-password/:token", resetPassword);
 router.post("/post-pet", verifyToken, upload.single('image'), postPet);
 
 router.get('/pets', getAllPets);
+router.get('/user/:userId', getUserById);
 
 export default router;

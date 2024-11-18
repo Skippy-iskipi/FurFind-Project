@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Bell, Filter, Menu, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { formatTimeAgo } from '../utils/dateUtils';
+import PetDetailsModal from '../components/PetDetailsModal';
 
 
 
@@ -23,6 +25,7 @@ const DashboardPage = () => {
 	const [selectedLocation, setSelectedLocation] = useState('');
 	const [pets, setPets] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [selectedPet, setSelectedPet] = useState(null);
 
 
 	const dogBreeds = [
@@ -462,10 +465,15 @@ const DashboardPage = () => {
 										</div>
 									) : (
 										pets.map((pet) => (
-											<div key={pet._id} className="bg-[#D4F5F5] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
-												{/* Pet Name */}
-												<h3 className="text-lg font-medium text-gray-800 mb-3">{pet.name}</h3>
-
+											<div key={pet._id} className="bg-[#E0F4F4] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
+												{/* Pet Name and Posted Time */}
+												<div className="flex justify-between items-center mb-3">
+													<h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
+													<span className="text-sm text-gray-500">
+														{formatTimeAgo(pet.createdAt)}
+													</span>
+												</div>
+												
 												{/* Pet Image */}
 												<div className="mb-3">
 													<img
@@ -495,7 +503,7 @@ const DashboardPage = () => {
 												{/* View Details Button */}
 												<button
 													className="w-full mt-4 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
-													onClick={() => {/* Add view details handler */}}
+													onClick={() => setSelectedPet(pet)}
 												>
 													View Details
 												</button>
@@ -523,6 +531,13 @@ const DashboardPage = () => {
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 			/>
+
+			{selectedPet && (
+				<PetDetailsModal 
+					pet={selectedPet} 
+					onClose={() => setSelectedPet(null)} 
+				/>
+			)}
 		</div>
 	);
 };
