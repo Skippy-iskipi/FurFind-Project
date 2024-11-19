@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import EditProfile from './EditProfile';
 
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('Posts');
@@ -65,7 +66,7 @@ const MyProfilePage = () => {
       case 'Ratings & Feedback':
         return <div>Your ratings and feedback will appear here.</div>;
       case 'Edit Profile':
-        return <div>Edit your profile here.</div>;
+        return <EditProfile />;
       default:
         return null;
     }
@@ -151,7 +152,7 @@ const MyProfilePage = () => {
 
       {/* Profile Content */}
       <div className="max-w-8xl mx-auto p-4">
-      <div className="relative flex items-center justify-center h-64 bg-gradient-to-r from-purple-500 to-blue-500">
+      <div className="relative flex items-center justify-center h-64 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
           <div className="absolute inset-0 flex justify-center">
             <img
               src={profileData.coverPhoto || '/path/to/default-cover.jpg'}
@@ -169,7 +170,7 @@ const MyProfilePage = () => {
           </div>
         </div>
         <div className="text-center mt-16 pt-4">
-          <h1 className="text-2xl font-bold">{profileData.name}</h1>
+          <h1 className="text-2xl font-bold font-lora text-purple-600">{profileData.name}</h1>
           <p className="text-gray-600 p-4">{profileData.bio}</p>
         </div>
         <div className="mt-8">

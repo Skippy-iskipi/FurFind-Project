@@ -1,16 +1,41 @@
 import { formatTimeAgo } from '../utils/dateUtils';
 import { useState, useEffect } from 'react';
 
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Invalid token', error);
+        return null;
+    }
+}
+
 const PetDetailsModal = ({ pet, onClose }) => {
     const [posterName, setPosterName] = useState('');
+    const [currentUserId, setCurrentUserId] = useState('');
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+            const decoded = parseJwt(token);
+            if (decoded) {
+                setCurrentUserId(decoded.userId);
+            }
+        } else {
+            console.log('No token found');
+        }
+
         const fetchPosterDetails = async () => {
             try {
-                console.log('Pet data:', pet);
-                
                 const userId = pet.userId?._id || pet.userId;
-                
+
                 if (!userId) {
                     console.log('No userId found');
                     return;
@@ -19,12 +44,9 @@ const PetDetailsModal = ({ pet, onClose }) => {
                 const response = await fetch(`http://localhost:5000/api/auth/user/${userId}`, {
                     credentials: 'include'
                 });
-                
-                console.log('User API response:', response);
-                
+
                 const data = await response.json();
-                console.log('User data:', data);
-                
+
                 if (data.success) {
                     setPosterName(data.user.name);
                 } else {
@@ -38,14 +60,12 @@ const PetDetailsModal = ({ pet, onClose }) => {
         fetchPosterDetails();
     }, [pet]);
 
-    console.log('Current posterName:', posterName);
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
                 {/* Back Button */}
                 <div className="p-4">
-                    <button 
+                    <button
                         onClick={onClose}
                         className="text-purple-600 hover:text-purple-700 flex items-center gap-2"
                     >
@@ -110,15 +130,17 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     </div>
 
                     {/* Apply Button */}
-                    <button 
-                        className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                        Apply for Adoption
-                    </button>
+                    {String(pet.userId?._id || pet.userId) !== String(currentUserId) && (
+                        <button
+                            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            Apply for Adoption
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-export default PetDetailsModal; 
+export default PetDetailsModal;
