@@ -10,6 +10,8 @@ import {
 	checkAuth,
 	getAllPets,
 	getUserById,
+	updateProfile,
+	getUserProfile
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { upload } from '../middleware/multer.js';
@@ -29,7 +31,17 @@ router.post("/reset-password/:token", resetPassword);
 
 router.post("/post-pet", verifyToken, upload.single('image'), postPet);
 
+router.put("/profile",
+	verifyToken,
+	upload.fields([
+		{ name: 'profilePicture', maxCount: 1 },
+		{ name: 'coverPhoto', maxCount: 1 }
+	]),
+	updateProfile
+);
+
 router.get('/pets', getAllPets);
 router.get('/user/:userId', getUserById);
+router.get('/user-profile', verifyToken, getUserProfile);
 
 export default router;

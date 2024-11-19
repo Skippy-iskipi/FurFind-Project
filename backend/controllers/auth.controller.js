@@ -9,6 +9,8 @@ import { sendPasswordResetEmail } from "../mailtrap/emails.js";
 import { sendResetSuccessEmail } from "../mailtrap/emails.js";
 
 import Pet from "../models/pet.model.js";
+import jwt from 'jsonwebtoken';
+import { verifyToken } from '../middleware/verifyToken.js';
 
 
 export const signup = async (req, res) => {
@@ -87,28 +89,35 @@ export const verifyEmail = async (req, res) => {
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
-    try{
-        const user = await User.findOne({email});
+    try {
+        const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({success: false, message: "Invalid email or password" });
+            return res.status(400).json({ success: false, message: "Invalid email or password" });
         }
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            return res.status(400).json({success: false, message: "Invalid email or password" });
+            return res.status(400).json({ success: false, message: "Invalid email or password" });
         }
+
+        // Generate a token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         generateTokenAndSetCookie(res, user._id);
 
         user.lastLogin = new Date();
         await user.save();
 
-        res.status(200).json({success: true, message: "Logged in successfully",
+        res.status(200).json({
+            success: true,
+            message: "Logged in successfully",
+            token, // Include the token in the response
             user: {
                 ...user._doc,
                 password: undefined,
-        }});
+            }
+        });
     } catch (error) {
-        res.status(400).json({success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
@@ -317,5 +326,94 @@ export const getUserById = async (req, res) => {
         });
     }
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { name, email, bio } = req.body;
+        const userId = req.userId; // Assuming you have middleware to set this
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Check email uniqueness if being changed
+        if (email && email !== user.email) {
+            const emailExists = await User.findOne({ email });
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already in use"
+                });
+            }
+            user.email = email;
+        }
+
+        // Update basic fields
+        if (name) user.name = name;
+        if (bio) user.bio = bio;
+
+        // Handle file uploads
+        if (req.files) {
+            if (req.files.profilePicture) {
+                const profileImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.files.profilePicture[0].filename}`;
+                user.profilePicture = profileImageUrl;
+            }
+            
+            if (req.files.coverPhoto) {
+                const coverPhotoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.files.coverPhoto[0].filename}`;
+                user.coverPhoto = coverPhotoUrl;
+            }
+        }
+
+        // Handle password update
+        if (req.body.password) {
+            const hashedPassword = await bcrypt.hash(req.body.password, 10);
+            user.password = hashedPassword;
+        }
+
+        await user.save();
+
+        // Remove sensitive data before sending response
+        const userResponse = user.toObject();
+        delete userResponse.password;
+        delete userResponse.verificationToken;
+        delete userResponse.verificationTokenExpiresAt;
+        delete userResponse.resetPasswordToken;
+        delete userResponse.resetPasswordExpiresAt;
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: userResponse
+        });
+
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const getUserProfile = async (req, res) => {
+    try {
+        console.log('User ID:', req.userId);
+        const userId = req.userId;
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+
 
 

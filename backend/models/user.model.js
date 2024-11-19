@@ -23,6 +23,23 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		role: {
+			type: String,
+			enum: ["Adopter", "Pet Owner", "Shelter", "Admin"],
+			default: "Adopter",
+		},
+		profilePicture: {
+			type: String,
+			default: '',
+		},
+		coverPhoto: {
+			type: String,
+			default: '',
+		},
+		bio: {
+			type: String,
+			default: '',
+		},
 		resetPasswordToken: String,
 		resetPasswordExpiresAt: Date,
 		verificationToken: String,
