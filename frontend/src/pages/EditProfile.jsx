@@ -86,6 +86,10 @@ const EditProfile = () => {
         credentials: 'include',
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       if (data.success) {
         console.log('Profile updated successfully:', data.message);
