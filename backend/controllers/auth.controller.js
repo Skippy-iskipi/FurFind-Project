@@ -330,7 +330,7 @@ export const getUserById = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { name, email, bio } = req.body;
-        const userId = req.userId; // Assuming you have middleware to set this
+        const userId = req.userId;
 
         const user = await User.findById(userId);
         if (!user) {
