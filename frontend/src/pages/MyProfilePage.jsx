@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('Posts');
+  const { logout } = useAuthStore();
   const [profileData, setProfileData] = useState({
     name: '',
     bio: '',
