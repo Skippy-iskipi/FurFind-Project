@@ -284,11 +284,11 @@ const DashboardPage = () => {
 									<label className="block mb-2 text-sm">Age</label>
 									<select
 										className="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white"
-										value={selectedAges}
+										value={selectedAges[0] || ''}
 										onChange={(e) => setSelectedAges([e.target.value])}
 									>
 										<option value="">Select Age...</option>
-										<option value="Puppy/Kitten">Puppy/Kitten</option>
+										<option value="Baby">Baby</option>
 										<option value="Young">Young</option>
 										<option value="Adult">Adult</option>
 										<option value="Senior">Senior</option>
