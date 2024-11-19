@@ -8,7 +8,6 @@ import { formatTimeAgo } from '../utils/dateUtils';
 import PetDetailsModal from '../components/PetDetailsModal';
 
 
-
 const DashboardPage = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const { user, logout } = useAuthStore();
@@ -26,7 +25,6 @@ const DashboardPage = () => {
 	const [pets, setPets] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedPet, setSelectedPet] = useState(null);
-
 
 	const dogBreeds = [
 		'Aspin',
@@ -111,39 +109,20 @@ const DashboardPage = () => {
 		try {
 			setLoading(true);
 
-			// Build query parameters
 			const params = new URLSearchParams();
-
-			if (classification && classification !== 'All') {
-				params.append('classification', classification);
-			}
-
-			if (selectedAges.length > 0) {
-				params.append('age', selectedAges.join(','));
-			}
-
-			if (selectedGenders.length > 0) {
-				params.append('gender', selectedGenders.join(','));
-			}
-
-			if (selectedBreed) {
-				params.append('breed', selectedBreed);
-			}
-
-			if (selectedLocation) {
-				params.append('location', selectedLocation);
-			}
+			if (classification && classification !== 'All') params.append('classification', classification);
+			if (selectedAges.length > 0) params.append('age', selectedAges.join(','));
+			if (selectedGenders.length > 0) params.append('gender', selectedGenders.join(','));
+			if (selectedBreed) params.append('breed', selectedBreed);
+			if (selectedLocation) params.append('location', selectedLocation);
 
 			const response = await fetch(`http://localhost:5000/api/auth/pets?${params}`, {
 				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				},
+				headers: { 'Content-Type': 'application/json' },
 				credentials: 'include'
 			});
 
 			const data = await response.json();
-
 			if (data.success) {
 				setPets(data.pets);
 			} else {
@@ -161,36 +140,28 @@ const DashboardPage = () => {
 		fetchFilteredPets();
 	}, [classification, selectedAges, selectedGenders, selectedBreed, selectedLocation]);
 
-
 	return (
 		<div className="min-h-screen bg-gray-50">
 			{/* Sidebar Navigation */}
-			<div
-				className={`fixed inset-y-0 left-0 w-80 bg-white shadow-lg transform ${
-					isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-				} transition-transform duration-300 ease-in-out z-50`}
-			>
-				{/* Logo Section */}
-				<div className="p-2 flex items-center justify-center">
-					<img src="/images/logo.png" alt="FurFind" className="h-16 w-32" />
-				</div>
-
-				{/* Navigation Links */}
+			<div className={`fixed inset-y-0 left-0 w-80 bg-white shadow-lg transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out z-50`}>
 				<nav className="p-4 space-y-2">
+					<div className="flex items-center justify-center mb-4">
+						<img src="/images/logo.png" alt="Logo" className="h-16" />
+					</div>
 					<button
-						onClick={() => navigate('/dashboard')}
+						onClick={() => navigate('/')}
 						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
 					>
 						Dashboard
 					</button>
 					<button
-						onClick={() => navigate('/profile')}
+						onClick={() => navigate('/my-profile')}
 						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
 					>
 						My Profile
 					</button>
 					<button
-						onClick={() => navigate('/applications')}
+						onClick={() => navigate('/my-applications')}
 						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
 					>
 						My Applications
@@ -244,11 +215,7 @@ const DashboardPage = () => {
 							</button>
 							<button
 								onClick={() => setShowFilters(!showFilters)}
-								className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-									showFilters
-										? 'bg-purple-600 text-white'
-										: 'border border-gray-300 text-gray-700'
-								}`}
+								className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showFilters ? 'bg-purple-600 text-white' : 'border border-gray-300 text-gray-700'}`}
 							>
 								<Filter className={`w-5 h-5 ${showFilters ? 'text-white' : 'text-purple-600'}`} />
 								<span className="font-medium">Filters</span>
@@ -257,7 +224,7 @@ const DashboardPage = () => {
 								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 w-5 h-5" />
 								<input
 									type="text"
-								placeholder="Search pets..."
+									placeholder="Search pets..."
 									className="border border-gray-300 px-10 py-2 rounded-lg w-96"
 								/>
 							</div>
@@ -312,43 +279,23 @@ const DashboardPage = () => {
 									</select>
 								</div>
 
-								{/* Age Section */}
-								<div className="space-y-2">
-									<div className="flex items-center justify-between cursor-pointer" onClick={() => setIsAgeVisible(!isAgeVisible)}>
-										<label className="text-sm">Age</label>
-										<button className="p-1">
-											{isAgeVisible ? (
-												<ChevronUp className="w-4 h-4" />
-											) : (
-												<ChevronDown className="w-4 h-4" />
-											)}
-										</button>
-									</div>
-
-									{isAgeVisible && (
-										<div className="space-y-2">
-											{['Baby', 'Young', 'Teenager', 'Adult'].map((age) => (
-												<label key={age} className="flex items-center text-sm">
-													<input
-														type="checkbox"
-														checked={selectedAges.includes(age)}
-														onChange={(e) => {
-															if (e.target.checked) {
-																setSelectedAges([...selectedAges, age]);
-															} else {
-																setSelectedAges(selectedAges.filter(a => a !== age));
-															}
-														}}
-														className="mr-2 rounded border-gray-300"
-													/>
-													{age}
-												</label>
-												))}
-										</div>
-									)}
+								{/* Age Select */}
+								<div>
+									<label className="block mb-2 text-sm">Age</label>
+									<select
+										className="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white"
+										value={selectedAges}
+										onChange={(e) => setSelectedAges([e.target.value])}
+									>
+										<option value="">Select Age...</option>
+										<option value="Puppy/Kitten">Puppy/Kitten</option>
+										<option value="Young">Young</option>
+										<option value="Adult">Adult</option>
+										<option value="Senior">Senior</option>
+									</select>
 								</div>
 
-								{/* Gender Section */}
+								{/* Gender Select */}
 								<div className="space-y-2">
 									<div className="flex items-center justify-between cursor-pointer" onClick={() => setIsGenderVisible(!isGenderVisible)}>
 										<label className="text-sm">Gender</label>
@@ -424,21 +371,17 @@ const DashboardPage = () => {
 
 					{/* Main Content Area with Tabs */}
 					<div className="flex-1">
-						{/* Tabs Navigation */}
 						<div className="border-b border-gray-200">
 							<nav className="flex space-x-8">
 								{tabs.map((tab) => (
 									<button
 										key={tab}
 										onClick={() => setActiveTab(tab)}
-										className={`
-											pb-4 text-sm
-											${
-												activeTab === tab
-													? 'border-b-2 border-purple-600 text-purple-600'
-													: 'text-gray-500 hover:text-gray-700'
-											}
-										`}
+										className={`pb-4 text-sm ${
+											activeTab === tab
+												? 'border-b-2 border-purple-600 text-purple-600'
+												: 'text-gray-500 hover:text-gray-700'
+										}`}
 									>
 										{tab}
 									</button>
@@ -513,13 +456,13 @@ const DashboardPage = () => {
 								</div>
 							)}
 							{activeTab === 'My Applications' && (
-								<div>Tanga</div>
+								<div>Your applications will appear here.</div>
 							)}
 							{activeTab === 'Adoption History' && (
-								<div>JDSFOSDFA</div>
+								<div>Your adoption history will appear here.</div>
 							)}
 							{activeTab === 'Adoption Request' && (
-								<div>dasdasdas</div>
+								<div>Your adoption requests will appear here.</div>
 							)}
 						</div>
 					</div>

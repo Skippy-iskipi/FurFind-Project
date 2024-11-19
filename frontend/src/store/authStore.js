@@ -30,12 +30,16 @@ export const useAuthStore = create((set) => ({
 		await new Promise(resolve => setTimeout(resolve, 2000));
 		try {
 			const response = await axios.post(`${API_URL}/login`, { email, password });
-			set({
-				isAuthenticated: true,
-				user: response.data.user,
-				error: null,
-				isLoading: false,
-			});
+			if (response.data.success) {
+				localStorage.setItem('token', response.data.token);
+				console.log('Token stored:', localStorage.getItem('token'));
+				set({
+					isAuthenticated: true,
+					user: response.data.user,
+					error: null,
+					isLoading: false,
+				});
+			}
 		} catch (error) {
 			set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
 			throw error;
@@ -67,17 +71,17 @@ export const useAuthStore = create((set) => ({
 		set({ isCheckingAuth: true, error: null });
 		try {
 			const response = await axios.get(`${API_URL}/check-auth`);
-			set({ 
-				user: response.data.user, 
-				isAuthenticated: true, 
-				isCheckingAuth: false 
+			set({
+				user: response.data.user,
+				isAuthenticated: true,
+				isCheckingAuth: false
 			});
 		} catch (error) {
-			set({ 
+			set({
 				user: null,
-				isAuthenticated: false, 
-				error: null, 
-				isCheckingAuth: false 
+				isAuthenticated: false,
+				error: null,
+				isCheckingAuth: false
 			});
 		}
 	},

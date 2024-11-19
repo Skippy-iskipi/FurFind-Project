@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import SignUpPage from './pages/SignUpPage'
 import LoginPage from './pages/LoginPage'
 import EmailVerificationPage from './pages/EmailVerificationPage'
@@ -6,12 +6,10 @@ import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
 import { useEffect } from 'react'
 import LoadingSpinner from './components/LoadingSpinner'
-import { Navigate } from 'react-router-dom'
 import DashboardPage from './pages/DashboardPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
-import PostPetModal from './pages/PostPetModal'
-
+import MyProfilePage from './pages/MyProfilePage'
 
 
 const ProtectedRoute = ({ children }) => {
@@ -89,6 +87,14 @@ function App() {
 					}
 				/>
 
+				<Route
+					path='/my-profile'
+					element={
+						<ProtectedRoute>
+							<MyProfilePage />
+						</ProtectedRoute>
+					}
+				/>
 
 				{/* catch all routes */}
 				<Route path='*' element={<Navigate to='/' replace />} />
