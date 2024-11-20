@@ -25,6 +25,15 @@ const DashboardPage = () => {
 	const [pets, setPets] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedPet, setSelectedPet] = useState(null);
+	const [showVerificationPopup, setShowVerificationPopup] = useState(false);
+
+	const handlePostPetClick = () => {
+		if (user.role === 'Adopter') {
+			setShowVerificationPopup(true);
+		} else if (user.role === 'Pet Owner' || user.role === 'Shelter') {
+			setIsModalOpen(true);
+		}
+	};
 
 	const dogBreeds = [
 		'Aspin',
@@ -235,8 +244,8 @@ const DashboardPage = () => {
 							<Bell className="text-purple-600" />
 							<span className="text-gray-600">Welcome, {user.name}</span>
 							<button
-								onClick={() => setIsModalOpen(true)}
-								className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+								onClick={handlePostPetClick}
+								className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
 							>
 								Post a Pet
 							</button>
@@ -290,8 +299,8 @@ const DashboardPage = () => {
 										<option value="">Select Age...</option>
 										<option value="Baby">Baby</option>
 										<option value="Young">Young</option>
+										<option value="Teenager">Teenager</option>
 										<option value="Adult">Adult</option>
-										<option value="Senior">Senior</option>
 									</select>
 								</div>
 
@@ -445,7 +454,7 @@ const DashboardPage = () => {
 
 												{/* View Details Button */}
 												<button
-													className="w-full mt-4 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+													className="w-full mt-4 bg-purple-500 text-white py-2 rounded-md hover:bg-purple-600 transition-colors"
 													onClick={() => setSelectedPet(pet)}
 												>
 													View Details
@@ -456,13 +465,13 @@ const DashboardPage = () => {
 								</div>
 							)}
 							{activeTab === 'My Applications' && (
-								<div>Your applications will appear here.</div>
+								<div className='col-span-full text-center text-gray-500'>No Applications at the moment.</div>
 							)}
 							{activeTab === 'Adoption History' && (
-								<div>Your adoption history will appear here.</div>
+								<div className='col-span-full text-center text-gray-500'>No Adoption History at the moment.</div>
 							)}
 							{activeTab === 'Adoption Request' && (
-								<div>Your adoption requests will appear here.</div>
+								<div className='col-span-full text-center text-gray-500'>No Adoption Requests at the moment.</div>
 							)}
 						</div>
 					</div>
@@ -478,8 +487,34 @@ const DashboardPage = () => {
 			{selectedPet && (
 				<PetDetailsModal 
 					pet={selectedPet} 
-					onClose={() => setSelectedPet(null)} 
+					onClose={() => setSelectedPet(null)}
 				/>
+			)}
+
+			{/* Verification Popup */}
+			{showVerificationPopup && (
+				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+					<div className="bg-[#E0F4F4] p-6 rounded-lg shadow-lg">
+						<div className="flex justify-between items-center mb-4">
+							<h2 className="text-2xl font-semibold font-lora">Only verified users are allowed to post</h2>
+							<button
+								onClick={() => setShowVerificationPopup(false)}
+								className="text-purple-600 text-2xl"
+							>
+								&times;
+							</button>
+						</div>
+						<p className="mb-4 mt-10">Verified accounts are required for posting to ensure safe interactions</p>
+						<div className="flex justify-end gap-4 mt-10">
+							<button className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+								Get Verified
+							</button>
+							<button onClick={() => setShowVerificationPopup(false)} className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">
+								Later
+							</button>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	);

@@ -18,6 +18,7 @@ function parseJwt(token) {
 
 const PetDetailsModal = ({ pet, onClose }) => {
     const [posterName, setPosterName] = useState('');
+    const [posterProfilePicture, setPosterProfilePicture] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
 
     useEffect(() => {
@@ -49,6 +50,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
 
                 if (data.success) {
                     setPosterName(data.user.name);
+                    setPosterProfilePicture(data.user.profilePicture);
                 } else {
                     console.log('Failed to fetch user data:', data.message);
                 }
@@ -75,9 +77,11 @@ const PetDetailsModal = ({ pet, onClose }) => {
 
                 <div className="p-6">
                     {/* User Info Section */}
-                    <div className="flex- items-center gap-4 mb-6">
+                    <div className="flex items-center gap-4 mb-6">
                         <div className="flex items-center gap-4">
                             <img
+                                src={posterProfilePicture || 'default-profile.png'}
+                                alt={posterName || 'Anonymous'}
                                 className="w-12 h-12 rounded-full object-cover mr-2 bg-gray-200"
                             />
                             <div>
@@ -102,7 +106,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     </div>
 
                     {/* Pet Details Grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-2">
                             <p className="font-medium">Name:</p>
                             <p className="text-gray-700">{pet.name}</p>
@@ -132,7 +136,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     {/* Apply Button */}
                     {String(pet.userId?._id || pet.userId) !== String(currentUserId) && (
                         <button
-                            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                            className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors mt-8"
                         >
                             Apply for Adoption
                         </button>

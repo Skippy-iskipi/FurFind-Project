@@ -4,7 +4,7 @@ import path from 'path';
 // Configure storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'backend/uploads/'); // Make sure this directory exists
+        cb(null, 'backend/uploads/');
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -22,11 +22,10 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
 };
 
-// Increase file size limit to 10MB
 export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 20 * 1024 * 1024 
+        fileSize: 20 * 1024 * 1024
     }
 });
