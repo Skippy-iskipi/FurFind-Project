@@ -167,9 +167,9 @@ const PostPetModal = ({ isOpen, onClose }) => {
                     <div className="col-span-1">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gray-200">
-                                {user?.profileImage && (
+                                {user?.profilePicture && (
                                     <img
-                                        src={user.profileImage}
+                                        src={user.profilePicture}
                                         alt="Profile"
                                         className="w-full h-full rounded-full object-cover"
                                     />

@@ -247,7 +247,6 @@ export const getAllPets = async (req, res) => {
     try {
         const { classification, age, gender, breed, location } = req.query;
         
-        // Build filter object
         const filter = {};
         
         if (classification && classification !== 'All') {
@@ -270,15 +269,13 @@ export const getAllPets = async (req, res) => {
             filter.location = location;
         }
 
-        // Make sure Pet model is properly imported
         const pets = await Pet.find(filter)
             .populate({
                 path: 'userId',
-                select: 'name profileImage'
+                select: 'name profilePicture'
             })
             .sort({ createdAt: -1 });
 
-        // Add error logging
         console.log('Fetched pets:', pets);
         
         res.status(200).json({
@@ -286,24 +283,21 @@ export const getAllPets = async (req, res) => {
             pets
         });
     } catch (error) {
-        // Detailed error logging
         console.error('Error in getAllPets:', error);
         res.status(500).json({
             success: false,
             message: "Error fetching pets",
-            error: error.message // Include error message for debugging
+            error: error.message
         });
     }
 };
 
 export const getUserById = async (req, res) => {
     try {
-        // Log the incoming request
         console.log('Getting user by ID:', req.params.userId);
         
-        const user = await User.findById(req.params.userId).select('name profileImage');
+        const user = await User.findById(req.params.userId).select('name profilePicture');
         
-        // Log the found user
         console.log('Found user:', user);
         
         if (!user) {
