@@ -152,7 +152,7 @@ const MyProfilePage = () => {
 
       {/* Profile Content */}
       <div className="max-w-8xl mx-auto p-4">
-      <div className="relative flex items-center justify-center h-64 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+      <div className="relative flex items-center justify-center h-64 bg-gradient-to-r from-[#7A62DC] to-[#58E6E0] rounded-lg">
           <div className="absolute inset-0 flex justify-center">
             <img
               src={profileData.coverPhoto || '/path/to/default-cover.jpg'}
