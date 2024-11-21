@@ -1,9 +1,22 @@
 import { VerificationApplication } from '../models/verificationApplication.model.js';
 import { User } from '../models/user.model.js';
 import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join(__dirname, '../uploads')); 
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    }
+});
+
+const upload = multer({ storage });
 
 export const submitVerificationApplication = [
     upload.fields([
@@ -16,7 +29,7 @@ export const submitVerificationApplication = [
         try {
             const { type, userId, ...formData } = req.body;
 
-            if (!type || !formData || !userId) {
+            if (!type || !userId) {
                 console.error('Missing fields:', { type, formData, userId });
                 return res.status(400).json({ success: false, message: 'All fields are required' });
             }
@@ -28,7 +41,6 @@ export const submitVerificationApplication = [
             if (req.files.proofOfResidence) {
                 formData.proofOfResidence = req.files.proofOfResidence[0].path;
             }
-
             if (req.files.registrationCertificate) {
                 formData.registrationCertificate = req.files.registrationCertificate[0].path;
             }
