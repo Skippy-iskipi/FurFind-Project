@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import InsideHeader from '../components/InsideHeader';
 import InsideSidebar from '../components/InsideSidebar';
+import { Users } from 'lucide-react';
+
 
 // Add this helper function outside your components
 const formatPhilippineNumber = (value) => {
@@ -20,7 +23,7 @@ const formatPhilippineNumber = (value) => {
             .replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
     }
     
-    return digits.slice(0, 10); // Limit to 10 digits
+    return digits.slice(0, 10);
 };
 
 // Add this helper function outside your components
@@ -219,11 +222,10 @@ const PetOwnerForm = ({ formData, handleInputChange, isFormValid, handleSubmit }
 
             <button 
                 onClick={handleSubmit}
-                disabled={!isFormValid()}
                 className={`py-2 px-6 border-2 rounded-lg transition-duration-200 ml-auto block
                     ${isFormValid() 
                         ? 'border-[#7A62DC] text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white' 
-                        : 'border-gray-300 text-gray-300 cursor-not-allowed'}`}
+                        : 'border-gray-300 text-gray-300'}`}
             >
                 Submit Application
             </button>
@@ -266,11 +268,9 @@ const ShelterForm = ({ formData, handleInputChange, isFormValid, handleSubmit })
                             name="yearEstablished"
                             value={formData.yearEstablished}
                             onChange={handleInputChange}
-                            type="number"
-                            min="1900"
-                            max={getCurrentYear()}
-                            className="w-full p-2 border border-gray-300 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder={`1900 - ${getCurrentYear()}`}
+                            type="text"
+                            className="w-full p-2 border border-gray-300 rounded-lg"
+                            placeholder="Enter year (e.g., 2003)"
                         />
                     </div>
                     <div>
@@ -366,7 +366,7 @@ const ShelterForm = ({ formData, handleInputChange, isFormValid, handleSubmit })
                                file:text-black"
                         />
                         <p className="text-sm text-gray-500 mt-1">
-                            Upload at least 3 photos of your facility at once
+                            Upload a photo of your facility
                         </p>
                     </div>
                 </div>
@@ -418,11 +418,10 @@ const ShelterForm = ({ formData, handleInputChange, isFormValid, handleSubmit })
 
             <button 
                 onClick={handleSubmit}
-                disabled={!isFormValid()}
                 className={`py-2 px-6 border-2 rounded-lg transition-duration-200 ml-auto block
                     ${isFormValid() 
                         ? 'border-[#7A62DC] text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white' 
-                        : 'border-gray-300 text-gray-300 cursor-not-allowed'}`}
+                        : 'border-gray-300 text-gray-300'}`}
             >
                 Submit Application
             </button>
@@ -458,13 +457,39 @@ const VerificationApplication = () => {
     const [activeButton, setActiveButton] = useState('owner');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [userId, setUserId] = useState(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/user-profile', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    setUserId(data.user.id); 
+                } else {
+                    console.error('Failed to fetch user data:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error.message);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (type === 'checkbox') {
             setFormData((prev) => ({ ...prev, [name]: checked }));
         } else if (type === 'file') {
-            setFormData((prev) => ({ ...prev, [name]: files[0] }));
+            setFormData((prev) => ({ ...prev, [name]: files }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
         }
@@ -475,12 +500,13 @@ const VerificationApplication = () => {
             const governmentIdInput = document.querySelector('input[name="governmentId"]');
             const proofOfResidenceInput = document.querySelector('input[name="proofOfResidence"]');
 
-            const hasRequiredFiles = 
+            const hasRequiredFiles =
                 governmentIdInput?.files.length > 0 &&
                 proofOfResidenceInput?.files.length > 0;
 
             const contactDigits = (formData.contactNumber || '').replace(/\s/g, '');
             const emergencyDigits = (formData.emergencyContact || '').replace(/\s/g, '');
+
 
             return (
                 formData.address.trim() !== '' &&
@@ -501,14 +527,29 @@ const VerificationApplication = () => {
 
             const hasRequiredFiles = 
                 registrationCertificateInput?.files.length > 0 &&
-                facilityPhotosInput?.files.length >= 3;
+                facilityPhotosInput?.files.length > 0;
 
             const shelterContactDigits = (formData.shelterContact || '').replace(/\s/g, '');
+
+            const yearEstablishedValid = formData.yearEstablished.trim() !== '';
+
+            console.log('Shelter Form Validation:', {
+                organizationName: formData.organizationName.trim() !== '',
+                registrationNumber: formData.registrationNumber.trim() !== '',
+                yearEstablished: yearEstablishedValid,
+                shelterType: formData.shelterType !== '',
+                shelterAddress: formData.shelterAddress.trim() !== '',
+                shelterContact: shelterContactDigits.length === 10,
+                organizationalBackground: formData.organizationalBackground.trim() !== '',
+                certifyInformation: formData.certifyInformation,
+                agreeToGuidelines: formData.agreeToGuidelines,
+                hasRequiredFiles
+            });
 
             return (
                 formData.organizationName.trim() !== '' &&
                 formData.registrationNumber.trim() !== '' &&
-                formData.yearEstablished.trim() !== '' &&
+                yearEstablishedValid &&
                 formData.shelterType !== '' &&
                 formData.shelterAddress.trim() !== '' &&
                 shelterContactDigits.length === 10 &&
@@ -521,8 +562,49 @@ const VerificationApplication = () => {
         return false;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!isFormValid()) {
+            alert('Please fill in all required fields correctly.');
+            return;
+        }
+
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append('type', activeButton);
+            formDataToSend.append('userId', userId);
+
+            // Append form data
+            for (const key in formData) {
+                if (formData[key] instanceof FileList) {
+                    Array.from(formData[key]).forEach(file => {
+                        formDataToSend.append(key, file);
+                    });
+                } else {
+                    formDataToSend.append(key, formData[key]);
+                }
+            }
+
+            // Log FormData
+            for (let pair of formDataToSend.entries()) {
+                console.log(pair[0]+ ', ' + pair[1]); 
+            }
+
+            const response = await axios.post('http://localhost:5000/api/verification/submit', formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.data.success) {
+                alert('Verification application submitted successfully.');
+            }
+        } catch (error) {
+            console.error('Error submitting verification application:', error);
+            alert('An error occurred. Please try again.');
+        }
+
         setShowModal(true);
     };
 

@@ -3,9 +3,10 @@ import { User } from '../models/user.model.js';
 
 export const submitVerificationApplication = async (req, res) => {
     try {
+        console.log('Request Body:', req.body);
+
         const { type, formData, userId } = req.body;
 
-        // Validate required fields
         if (!type || !formData || !userId) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
