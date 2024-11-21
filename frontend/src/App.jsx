@@ -10,6 +10,7 @@ import DashboardPage from './pages/DashboardPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import MyProfilePage from './pages/MyProfilePage'
+import VerificationApplicationPage from './pages/VerificationApplication'
 
 
 const ProtectedRoute = ({ children }) => {
@@ -92,6 +93,14 @@ function App() {
 					element={
 						<ProtectedRoute>
 							<MyProfilePage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/verification-application'
+					element={
+						<ProtectedRoute>
+							<VerificationApplicationPage />
 						</ProtectedRoute>
 					}
 				/>

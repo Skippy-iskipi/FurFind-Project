@@ -99,6 +99,7 @@ const MyProfilePage = () => {
           >
             My Applications
           </button>
+
           <button
             onClick={() => navigate('/adoption-history')}
             className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
