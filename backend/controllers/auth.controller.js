@@ -1,17 +1,12 @@
 import { User } from "../models/user.model.js";
+import { VerificationApplication } from '../models/verificationApplication.model.js';
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from 'jsonwebtoken';
 import { generateVerificationToken } from "../utils/generateVerificationToken.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail } from "../mailtrap/emails.js";
-import { sendWelcomeEmail } from "../mailtrap/emails.js";
-import { sendPasswordResetEmail } from "../mailtrap/emails.js";
-import { sendResetSuccessEmail } from "../mailtrap/emails.js";
-
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import Pet from "../models/pet.model.js";
-import jwt from 'jsonwebtoken';
-import { verifyToken } from '../middleware/verifyToken.js';
-
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
@@ -405,6 +400,61 @@ export const getUserProfile = async (req, res) => {
         res.json({ success: true, user });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+export const submitVerificationApplication = async (req, res) => {
+    try {
+        const { type, formData, userId } = req.body;
+
+        if (!type || !formData || !userId) {
+            return res.status(400).json({ success: false, message: 'All fields are required' });
+        }
+
+        const verificationApplication = new VerificationApplication({
+            type,
+            formData,
+            userId,
+        });
+
+        await verificationApplication.save();
+
+        res.status(201).json({ success: true, message: 'Verification application submitted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const updateUserRole = async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        const application = await VerificationApplication.findOne({ userId });
+
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Verification application not found' });
+        }
+
+        let newRole;
+        if (application.type === 'Pet Owner') {
+            newRole = 'Pet Owner';
+        } else if (application.type === 'Shelter') {
+            newRole = 'Shelter';
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid application type' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        user.role = newRole;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'User role updated successfully', role: newRole });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

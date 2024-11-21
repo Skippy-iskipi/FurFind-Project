@@ -15,6 +15,7 @@ import {
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { upload } from '../middleware/multer.js';
+import { submitVerificationApplication, updateUserRole } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
@@ -43,5 +44,9 @@ router.put("/profile",
 router.get('/pets', getAllPets);
 router.get('/user/:userId', getUserById);
 router.get('/user-profile', verifyToken, getUserProfile);
+
+router.post('/submit', submitVerificationApplication);
+router.post('/update-role', updateUserRole);
+
 
 export default router;
