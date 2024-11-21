@@ -1,5 +1,5 @@
 import express from 'express';
-import { submitVerificationApplication, updateUserRole } from '../controllers/auth.controller.js';
+import { submitVerificationApplication, updateUserRole } from '../controllers/verificationApplication.controller.js';
 
 const router = express.Router();
 
