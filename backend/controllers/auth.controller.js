@@ -356,7 +356,7 @@ export const updateProfile = async (req, res) => {
                 const profileImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.files.profilePicture[0].filename}`;
                 user.profilePicture = profileImageUrl;
             }
-            
+
             if (req.files.coverPhoto) {
                 const coverPhotoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.files.coverPhoto[0].filename}`;
                 user.coverPhoto = coverPhotoUrl;

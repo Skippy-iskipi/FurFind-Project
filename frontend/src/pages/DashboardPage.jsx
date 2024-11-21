@@ -506,7 +506,10 @@ const DashboardPage = () => {
 						</div>
 						<p className="mb-4 mt-10">Verified accounts are required for posting to ensure safe interactions</p>
 						<div className="flex justify-end gap-4 mt-10">
-							<button className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+							<button
+								onClick={() => navigate('/verification-application')}
+								className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+							>
 								Get Verified
 							</button>
 							<button onClick={() => setShowVerificationPopup(false)} className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">
