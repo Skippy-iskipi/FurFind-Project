@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, Bell } from 'lucide-react';
+import InsideSidebar from './InsideSidebar';
 
-const InsideHeader = ({ isMenuOpen, setIsMenuOpen }) => {
+const InsideHeader = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [profileData, setProfileData] = useState({ name: '' });
 
     useEffect(() => {
@@ -29,21 +31,37 @@ const InsideHeader = ({ isMenuOpen, setIsMenuOpen }) => {
         fetchUserData();
     }, []);
 
+    const handleLogout = () => {
+        // Implement logout logic here
+        console.log('Logged out');
+    };
+
     return (
-        <header className="bg-white shadow-md w-full">
-            <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-purple-600">
-                        <Menu className="text-purple-600" />
-                    </button>
-                    <img src="/images/logo.png" alt="FurFind" className="w-32 h-12" />
+        <div>
+            {/* Header */}
+            <header className="bg-white shadow-md w-full">
+                <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-purple-600">
+                            <Menu className="text-purple-600" />
+                        </button>
+                        <img src="/images/logo.png" alt="FurFind" className="w-32 h-12" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Bell className="text-purple-600" />
+                        <span className="text-gray-600">Welcome, {profileData.name}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <Bell className="text-purple-600" />
-                    <span className="text-gray-600">Welcome, {profileData.name}</span>
-                </div>
-            </div>
-        </header>
+            </header>
+
+            {/* Sidebar */}
+            <InsideSidebar isMenuOpen={isMenuOpen} handleLogout={handleLogout} />
+
+            {/* Overlay */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMenuOpen(false)} />
+            )}
+        </div>
     );
 };
 

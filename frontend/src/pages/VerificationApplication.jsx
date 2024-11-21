@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import InsideHeader from '../components/InsideHeader';
-import InsideSidebar from '../components/InsideSidebar';
 
 
 function parseJwt(token) {
@@ -155,7 +154,6 @@ const VerificationApplication = () => {
     return (
         <div className="w-full h-full">
             <InsideHeader />
-            <InsideSidebar />
             <div className="w-full px-4 sm:px-6 md:px-8 py-10">
                 <h1 className="text-2xl font-bold mb-4">Verification Application</h1>
                 <p className="mb-6 text-xs">Get verified to post pets for adoption on FurFind</p>
