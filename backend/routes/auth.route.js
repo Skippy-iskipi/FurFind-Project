@@ -45,8 +45,8 @@ router.get('/pets', getAllPets);
 router.get('/user/:userId', getUserById);
 router.get('/user-profile', verifyToken, getUserProfile);
 
-router.post('/submit', submitVerificationApplication);
-router.post('/update-role', updateUserRole);
+router.post('/submit', verifyToken, submitVerificationApplication);
+router.post('/update-role', verifyToken, updateUserRole);
 
 
 export default router;
