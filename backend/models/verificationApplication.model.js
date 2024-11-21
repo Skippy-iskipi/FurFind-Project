@@ -35,7 +35,7 @@ const shelterSchema = new mongoose.Schema({
 const verificationApplicationSchema = new mongoose.Schema({
     type: {
         type: String,
-        enum: ['Pet Owner', 'Shelter'],
+        enum: ['Pet Owner', 'Animal Shelter'],
         required: true,
     },
     formData: {
