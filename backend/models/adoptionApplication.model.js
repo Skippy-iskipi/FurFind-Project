@@ -19,6 +19,7 @@ const adoptionApplicationSchema = new mongoose.Schema({
     proofOfResidence: { type: String, required: true },
     proofOfIncome: { type: String, required: true },
     certifyInformation: { type: Boolean, required: true },
+    status: { type: String, default: 'Pending' },
 }, { timestamps: true });
 
 export const AdoptionApplication = mongoose.model('AdoptionApplication', adoptionApplicationSchema);
