@@ -11,6 +11,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import MyProfilePage from './pages/MyProfilePage'
 import VerificationApplicationPage from './pages/VerificationApplication'
+import AdoptionApplication from './pages/AdoptionApplication'
 
 
 const ProtectedRoute = ({ children }) => {
@@ -104,6 +105,8 @@ function App() {
 						</ProtectedRoute>
 					}
 				/>
+
+        <Route path="/adoption-application/:petId" element={<AdoptionApplication />} />
 
 				{/* catch all routes */}
 				<Route path='*' element={<Navigate to='/' replace />} />

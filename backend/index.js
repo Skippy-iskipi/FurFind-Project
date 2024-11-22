@@ -11,6 +11,7 @@ import { connectDB } from "./db/connectDB.js";
 
 import authRoutes from "./routes/auth.route.js";
 import verificationApplicationRoutes from './routes/verificationApplication.routes.js';
+import adoptionApplicationRoutes from './routes/adoptionApplication.routes.js';
 
 import { upload } from './middleware/multer.js';
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use('/api/verification', verificationApplicationRoutes);
+app.use('/api/adoption', adoptionApplicationRoutes);
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
