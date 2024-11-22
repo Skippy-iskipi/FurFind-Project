@@ -533,7 +533,7 @@ const Modal = ({ isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-[#D4F5F5] p-8 rounded-lg shadow-lg relative max-w-md w-full mx-4">
-                <img src="./images/application.png" alt="Success" className="w-15 h-15 relative top-[-10px] left-[-10px]" />
+                <img src="/images/application.png" alt="Success" className="w-15 h-15 relative top-[-10px] left-[-10px]" />
                 <button onClick={onClose} className="absolute top-5 right-5 text-[#7A62DC] text-4xl">
                     &times;
                 </button>

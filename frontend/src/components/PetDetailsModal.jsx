@@ -1,5 +1,6 @@
 import { formatTimeAgo } from '../utils/dateUtils';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function parseJwt(token) {
     try {
@@ -20,6 +21,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
     const [posterName, setPosterName] = useState('');
     const [posterProfilePicture, setPosterProfilePicture] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -137,6 +139,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     {String(pet.userId?._id || pet.userId) !== String(currentUserId) && (
                         <button
                             className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors mt-8"
+                            onClick={() => navigate(`/adoption-application/${pet._id}`)}
                         >
                             Apply for Adoption
                         </button>
