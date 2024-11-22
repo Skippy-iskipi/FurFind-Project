@@ -157,7 +157,7 @@ const MyProfilePage = () => {
       <div className="relative flex items-center justify-center h-64 bg-gradient-to-r from-[#7A62DC] to-[#58E6E0] rounded-lg">
           <div className="absolute inset-0 flex justify-center">
             <img
-              src={profileData.coverPhoto || '/path/to/default-cover.jpg'}
+              src={profileData.coverPhoto || '/images/logo1.png'}
               alt="Cover"
               className="h-64 object-cover"
               style={{ maxWidth: '100%', width: '60%' }}
@@ -165,7 +165,7 @@ const MyProfilePage = () => {
           </div>
           <div className="absolute top-1/2 bottom-1/2 mt-16 transform -translate-y-1/2">
             <img
-              src={profileData.profilePicture || '/path/to/default-profile.jpg'}
+              src={profileData.profilePicture || '/images/default-profile.jpg'}
               alt="Profile"
               className="w-32 h-32 rounded-full border-4 border-white object-cover"
             />
