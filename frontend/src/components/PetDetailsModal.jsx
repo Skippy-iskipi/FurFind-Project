@@ -86,13 +86,13 @@ const PetDetailsModal = ({ pet, onClose }) => {
                             />
                             <div>
                                 <h2 className="font-semibold text-lg">{posterName || 'Anonymous'}</h2>
-                                <p className="text-gray-500 text-sm">{formatTimeAgo(pet.createdAt)}</p>
+                                <p className="text-gray-500 text-sm text-left">{formatTimeAgo(pet.createdAt)}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-gray-700 mb-6">
+                    <p className="text-gray-700 mb-6 text-left">
                         {pet.description || 'No description available'}
                     </p>
 
