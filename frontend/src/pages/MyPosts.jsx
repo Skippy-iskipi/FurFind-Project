@@ -25,7 +25,7 @@ const MyPosts = () => {
 			if (data.success) {
 				setPets(data.pets);
 			} else {
-				console.error('Fetch error:', error);
+				console.error('Fetch error:', data.message);
 			}
 		} catch (error) {
 			console.error('Fetch error:', error);
