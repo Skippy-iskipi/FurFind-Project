@@ -15,7 +15,6 @@ const DashboardPage = () => {
 	const [showFilters, setShowFilters] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState('Available Pets');
-	const [isAgeVisible, setIsAgeVisible] = useState(true);
 	const [isGenderVisible, setIsGenderVisible] = useState(true);
 	const [classification, setClassification] = useState('All');
 	const [selectedAges, setSelectedAges] = useState([]);
@@ -242,7 +241,13 @@ const DashboardPage = () => {
 						{/* Right Section */}
 						<div className="flex items-center gap-4">
 							<Bell className="text-purple-600" />
-							<span className="text-gray-600">Welcome, {user.name}</span>
+							<button onClick={() => navigate('/my-profile')}>
+								<img
+									src={user.profilePicture || '/images/default-profile.jpg'}
+									alt="Profile"
+									className="w-8 h-8 rounded-full"
+								/>
+							</button>
 							<button
 								onClick={handlePostPetClick}
 								className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
