@@ -458,6 +458,37 @@ export const updateUserRole = async (req, res) => {
     }
 };
 
+export const getUserPets = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        const pets = await Pet.find({ userId })
+            .populate({
+                path: 'userId',
+                select: 'name profilePicture'
+            })
+            .sort({ createdAt: -1 });
+
+        if (!pets.length) {
+            return res.status(404).json({
+                success: false,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            pets
+        });
+    } catch (error) {
+        console.error('Error fetching user pets:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching user pets",
+            error: error.message
+        });
+    }
+};
+
 
 
 
