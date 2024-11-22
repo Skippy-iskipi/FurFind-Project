@@ -73,10 +73,14 @@ const EditProfile = () => {
 
     if (formData.profilePicture instanceof File) {
       formDataToSend.append('profilePicture', formData.profilePicture);
+    } else if (formData.profilePicture === null) {
+      formDataToSend.append('profilePicture', '');
     }
 
     if (formData.coverPhoto instanceof File) {
       formDataToSend.append('coverPhoto', formData.coverPhoto);
+    } else if (formData.coverPhoto === null) {
+      formDataToSend.append('coverPhoto', '');
     }
 
     try {
