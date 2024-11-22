@@ -11,7 +11,8 @@ import {
 	getAllPets,
 	getUserById,
 	updateProfile,
-	getUserProfile
+	getUserProfile,
+	getUserPets,
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { upload } from '../middleware/multer.js';
@@ -48,5 +49,6 @@ router.get('/user-profile', verifyToken, getUserProfile);
 router.post('/submit', verifyToken, submitVerificationApplication);
 router.post('/update-role', verifyToken, updateUserRole);
 
+router.get('/user-pets', verifyToken, getUserPets);
 
 export default router;

@@ -4,6 +4,7 @@ import { Menu, Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import EditProfile from './EditProfile';
+import MyPosts from './MyPosts';
 
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('Posts');
@@ -60,7 +61,7 @@ const MyProfilePage = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'Posts':
-        return <div>Your posts will appear here.</div>;
+        return <MyPosts />;
       case 'Adopted Pets':
         return <div>Your adopted pets will appear here.</div>;
       case 'Ratings & Feedback':
