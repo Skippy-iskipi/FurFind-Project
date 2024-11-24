@@ -551,7 +551,7 @@ export const getApplicationDetails = async (req, res) => {
       })
       .populate({
         path: 'userId',
-        select: 'role name contactNumber email',
+        select: 'role name email',
       });
 
     if (!application) {
@@ -561,7 +561,11 @@ export const getApplicationDetails = async (req, res) => {
       });
     }
 
-    const adopter = await User.findById(application.userId).select('role name contactNumber email');
+    const adopter = {
+      name: application.userId.name,
+      email: application.userId.email,
+      contactNumber: application.contactNumber,
+    };
     const owner = application.petId.userId;
 
     res.status(200).json({
