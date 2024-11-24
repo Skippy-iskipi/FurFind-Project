@@ -45,7 +45,7 @@ const InsideHeader = () => {
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-purple-600">
                             <Menu className="text-purple-600" />
                         </button>
-                        <img src="/images/logo.png" alt="FurFind" className="w-32 h-12" />
+                        <img src="/images/logo.png" alt="FurFind" className="h-12 inline-block mr-2" />
                     </div>
                     <div className="flex items-center gap-4">
                         <Bell className="text-purple-600" />

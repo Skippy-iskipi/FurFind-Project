@@ -15,7 +15,8 @@ import {
 	getUserPets,
 	submitVerificationApplication,
 	updateUserRole,
-	getAdoptionApplicationDetails
+	getAdoptionApplicationDetails,
+	getApplicationDetails
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -55,5 +56,7 @@ router.post('/update-role', verifyToken, updateUserRole);
 router.get('/user-pets', verifyToken, getUserPets);
 
 router.get('/adoption-applications-details', customVerifyToken, getAdoptionApplicationDetails);
+
+router.get('/application-details/:applicationId', getApplicationDetails);
 
 export default router;

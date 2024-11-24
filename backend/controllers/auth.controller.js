@@ -507,13 +507,15 @@ export const getAdoptionApplicationDetails = async (req, res) => {
             .select('createdAt status');
 
         if (!applications.length) {
-            return res.status(404).json({
-                success: false,
-                message: "No adoption applications found"
+            return res.status(200).json({
+                success: true,
+                message: "No adoption applications yet",
+                applications: []
             });
         }
 
         const response = applications.map(app => ({
+            id: app._id,
             petName: app.petId.name,
             petImage: app.petId.image,
             dateApplied: app.createdAt,
@@ -532,6 +534,53 @@ export const getAdoptionApplicationDetails = async (req, res) => {
             error: error.message
         });
     }
+};
+
+export const getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await AdoptionApplication.findById(applicationId)
+      .populate({
+        path: 'petId',
+        select: 'name image classification breed gender age location userId',
+        populate: {
+          path: 'userId',
+          select: 'name contactNumber email',
+        },
+      })
+      .populate({
+        path: 'userId',
+        select: 'role name contactNumber email',
+      });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found',
+      });
+    }
+
+    const adopter = await User.findById(application.userId).select('role name contactNumber email');
+    const owner = application.petId.userId;
+
+    res.status(200).json({
+      success: true,
+      application: {
+        pet: application.petId,
+        status: application.status,
+        adopter,
+        owner,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching application details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching application details',
+      error: error.message,
+    });
+  }
 };
 
 
