@@ -7,6 +7,7 @@ import { generateVerificationToken } from "../utils/generateVerificationToken.js
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import Pet from "../models/pet.model.js";
+import { AdoptionApplication } from '../models/adoptionApplication.model.js';
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
@@ -488,6 +489,46 @@ export const getUserPets = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Error fetching user pets",
+            error: error.message
+        });
+    }
+};
+
+export const getAdoptionApplicationDetails = async (req, res) => {
+    try {
+        console.log('User ID:', req.userId);
+        const userId = req.userId;
+
+        const applications = await AdoptionApplication.find({ userId })
+            .populate({
+                path: 'petId',
+                select: 'name image'
+            })
+            .select('createdAt status');
+
+        if (!applications.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No adoption applications found"
+            });
+        }
+
+        const response = applications.map(app => ({
+            petName: app.petId.name,
+            petImage: app.petId.image,
+            dateApplied: app.createdAt,
+            status: app.status
+        }));
+
+        res.status(200).json({
+            success: true,
+            applications: response
+        });
+    } catch (error) {
+        console.error('Error fetching adoption applications:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching adoption applications",
             error: error.message
         });
     }

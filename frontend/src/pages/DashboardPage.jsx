@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Bell, Filter, Menu, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatTimeAgo } from '../utils/dateUtils';
 import PetDetailsModal from '../components/PetDetailsModal';
+import MyApplications from '../components/MyApplications';
 
 
 const DashboardPage = () => {
@@ -469,9 +470,7 @@ const DashboardPage = () => {
 									)}
 								</div>
 							)}
-							{activeTab === 'My Applications' && (
-								<div className='col-span-full text-center text-gray-500'>No Applications at the moment.</div>
-							)}
+							{activeTab === 'My Applications' && <MyApplications />}
 							{activeTab === 'Adoption History' && (
 								<div className='col-span-full text-center text-gray-500'>No Adoption History at the moment.</div>
 							)}
