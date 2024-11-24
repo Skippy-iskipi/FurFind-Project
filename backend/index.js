@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.route.js";
 import verificationApplicationRoutes from './routes/verificationApplication.routes.js';
 import adoptionApplicationRoutes from './routes/adoptionApplication.routes.js';
 
+
 import { upload } from './middleware/multer.js';
 
 dotenv.config();

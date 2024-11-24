@@ -1,0 +1,99 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const MyApplications = () => {
+  const [applications, setApplications] = useState([]);
+  const [filteredApplications, setFilteredApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('All');
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/auth/adoption-applications-details', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setApplications(response.data.applications || []);
+        setFilteredApplications(response.data.applications || []);
+      } catch (err) {
+        setError(err.response ? err.response.data.message : 'Error fetching data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+  useEffect(() => {
+    filterApplications(activeTab);
+  }, [activeTab, applications]);
+
+  const filterApplications = (status) => {
+    if (status === 'All') {
+      setFilteredApplications(applications);
+    } else {
+      setFilteredApplications(applications.filter(app => app.status.toLowerCase() === status.toLowerCase()));
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div>
+      <div className="flex space-x-8 mb-4 border-b">
+        {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
+          <button
+            key={status}
+            onClick={() => setActiveTab(status)}
+            className={`pb-2 ${activeTab === status ? 'text-[#7A62DC] font-semibold border-b-2 border-[#7A62DC]' : 'text-gray-500'}`}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+      <div className="space-y-4">
+        {filteredApplications.length === 0 ? (
+          <div>No applications found.</div>
+        ) : (
+          filteredApplications.map((app, index) => (
+            <div key={index} className="flex justify-between items-center p-4 border rounded-md bg-gray-100">
+              <div className="flex items-center">
+                <img src={app.petImage || '/path/to/default-avatar.png'} alt="Pet" className="w-12 h-12 rounded-full mr-4" />
+                <div>
+                  <h3 className="text-md font-semibold">Application for {app.petName}</h3>
+                  <p className="text-sm text-gray-600">Applied on: {new Date(app.dateApplied).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className={`px-3 py-1 rounded-md ${getStatusClass(app.status)}`}>
+                  {app.status}
+                </span>
+                <button className="px-4 py-2 border border-[#7A62DC] text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors">View Application</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+const getStatusClass = (status) => {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'bg-[#FEF9C3] text-[#A16207]';
+    case 'rejected':
+      return 'bg-[#FEE2E2] text-[#B91C1C]';
+    case 'approved':
+      return 'bg-[#CFFAFE] text-[#0E7490]';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+export default MyApplications;
