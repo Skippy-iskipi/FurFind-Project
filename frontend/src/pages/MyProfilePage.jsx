@@ -17,6 +17,8 @@ const MyProfilePage = () => {
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -84,44 +86,44 @@ const MyProfilePage = () => {
           </div>
           <button
             onClick={() => navigate('/')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Dashboard
           </button>
           <button
             onClick={() => navigate('/my-profile')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             My Profile
           </button>
           <button
             onClick={() => navigate('/my-applications')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             My Applications
           </button>
 
           <button
             onClick={() => navigate('/adoption-history')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Adoption History
           </button>
           <button
             onClick={() => navigate('/adoption-request')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Adoption Request
           </button>
           <button
             onClick={() => navigate('/help-faqs')}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Help & FAQs
           </button>
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+            className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Log out
           </button>
@@ -140,13 +142,13 @@ const MyProfilePage = () => {
       <header className="bg-white shadow">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-purple-600">
-              <Menu className="text-purple-600" />
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#7A62DC]">
+              <Menu className="text-[#7A62DC]" />
             </button>
             <img src="/images/logo.png" alt="FurFind" className="h-12 inline-block mr-2" />
           </div>
           <div className="flex items-center gap-4">
-            <Bell className="text-purple-600" />
+            <Bell className="text-[#7A62DC]" />
             <span className="text-gray-600">Welcome, {profileData.name}</span>
           </div>
         </div>
@@ -159,20 +161,21 @@ const MyProfilePage = () => {
             <img
               src={profileData.coverPhoto || '/images/logo1.png'}
               alt="Cover"
-              className="h-64 object-cover"
-              style={{ maxWidth: '100%', width: '60%' }}
+              className="h-64 w-[60%] object-cover cursor-pointer"
+              onClick={() => setIsCoverModalOpen(true)}
             />
           </div>
           <div className="absolute top-1/2 bottom-1/2 mt-16 transform -translate-y-1/2">
             <img
               src={profileData.profilePicture || '/images/default-profile.jpg'}
               alt="Profile"
-              className="w-32 h-32 rounded-full border-4 border-white object-cover"
+              className="w-32 h-32 rounded-full border-4 border-white object-cover cursor-pointer"
+              onClick={() => setIsModalOpen(true)}
             />
           </div>
         </div>
         <div className="text-center mt-16 pt-4">
-          <h1 className="text-2xl font-bold font-lora text-purple-600">{profileData.name}</h1>
+          <h1 className="text-2xl font-bold font-lora text-[#7A62DC]">{profileData.name}</h1>
           <p className="text-gray-600 p-4">{profileData.bio}</p>
         </div>
         <div className="mt-8">
@@ -182,7 +185,7 @@ const MyProfilePage = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-2 ${
-                  activeTab === tab ? 'border-b-4 border-purple-600 text-purple-600' : 'text-gray-500'
+                  activeTab === tab ? 'border-b-4 border-[#7A62DC] text-[#7A62DC]' : 'text-gray-500'
                 }`}
               >
                 {tab}
@@ -194,6 +197,42 @@ const MyProfilePage = () => {
           </div>
         </div>
       </div>
+      {/* Modal for larger image */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="rounded-md relative">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="text-[#7A62DC] text-5xl absolute top-1 right-5"
+            >
+              &times;
+            </button>
+            <img
+              src={profileData.profilePicture || '/images/default-profile.jpg'}
+              alt="Profile Large"
+              className="w-full h-[90vh] rounded-md"
+            />
+          </div>
+        </div>
+      )}
+      {/* Modal for larger cover photo */}
+      {isCoverModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="rounded-lg relative">
+            <button
+              onClick={() => setIsCoverModalOpen(false)}
+              className="text-[#7A62DC] text-5xl absolute top-1 right-5"
+            >
+              &times;
+            </button>
+            <img
+              src={profileData.coverPhoto || '/images/logo1.png'}
+              alt="Cover Large"
+              className="w-full h-[90vh] rounded-md"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
