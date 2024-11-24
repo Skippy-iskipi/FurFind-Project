@@ -45,7 +45,7 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
         <img
           src={application.pet.image}
           alt={application.pet.name}
-          className="w-full h-full object-cover rounded-md"
+          className="w-full h-96 object-cover rounded-md"
         />
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 border border-gray-300 rounded-md">
@@ -58,23 +58,23 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
             <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Location:</strong> {application.pet.location}</p>
           </div>
           <div className="grid grid-cols-1 gap-6">
-            <div className="mb-4 p-4 border border-gray-300 rounded-md">
+            <div className="flex flex-col gap-2 p-4 border border-gray-300 rounded-md w-full">
                 <h3 className="font-semibold">Pet Owner</h3>
                 <p>{application.owner.name}</p>
                 <p>
                   <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.contactNumber}
                 </p>
-                <p>
+                <p className="truncate">
                   <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.email}
                 </p>
             </div>
-            <div className="p-4 border border-gray-300 rounded-md">
+            <div className="flex flex-col gap-2 p-4 border border-gray-300 rounded-md w-full">
                 <h3 className="font-semibold">Adopter</h3>
                 <p>{application.adopter.name}</p>
                 <p>
                   <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.contactNumber}
                 </p>
-                <p>
+                <p className="truncate">
                   <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.email}
                 </p>
             </div>
