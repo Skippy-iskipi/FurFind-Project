@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/solid';
 
 const ApplicationDetails = ({ applicationId, closeModal }) => {
   const [application, setApplication] = useState(null);
@@ -13,6 +14,7 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
+        console.log(response.data.application.adopter);
         setApplication(response.data.application);
       } catch (err) {
         setError('Error fetching application details');
@@ -47,26 +49,34 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
         />
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 border border-gray-300 rounded-md">
-            <p className="mb-3 font-openSans"><strong>Status:</strong> <span className="bg-[#FEF9C3] text-[#A16207] px-2 py-1 rounded-md">{application.status}</span></p>
-            <p className="mb-3 font-openSans"><strong>Name:</strong> {application.pet.name}</p>
-            <p className="mb-3 font-openSans"><strong>Classification:</strong> {application.pet.classification}</p>
-            <p className="mb-3 font-openSans"><strong>Breed:</strong> {application.pet.breed}</p>
-            <p className="mb-3 font-openSans"><strong>Gender:</strong> {application.pet.gender}</p>
-            <p className="mb-3 font-openSans"><strong>Age:</strong> {application.pet.age}</p>
-            <p className="mb-3 font-openSans"><strong>Location:</strong> {application.pet.location}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Status:</strong> <span className="bg-[#FEF9C3] text-[#A16207] px-2 py-1 rounded-md">{application.status}</span></p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Name:</strong> {application.pet.name}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Classification:</strong> {application.pet.classification}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Breed:</strong> {application.pet.breed}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Gender:</strong> {application.pet.gender}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Age:</strong> {application.pet.age}</p>
+            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Location:</strong> {application.pet.location}</p>
           </div>
           <div className="grid grid-cols-1 gap-6">
             <div className="mb-4 p-4 border border-gray-300 rounded-md">
                 <h3 className="font-semibold">Pet Owner</h3>
                 <p>{application.owner.name}</p>
-                <p>📞 {application.owner.contactNumber}</p>
-                <p>✉️ {application.owner.email}</p>
+                <p>
+                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.contactNumber}
+                </p>
+                <p>
+                  <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.email}
+                </p>
             </div>
             <div className="p-4 border border-gray-300 rounded-md">
                 <h3 className="font-semibold">Adopter</h3>
                 <p>{application.adopter.name}</p>
-                <p>📞 {application.adopter.contactNumber}</p>
-                <p>✉️ {application.adopter.email}</p>
+                <p>
+                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.contactNumber}
+                </p>
+                <p>
+                  <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.email}
+                </p>
             </div>
           </div>
         </div>
