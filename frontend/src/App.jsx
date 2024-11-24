@@ -14,6 +14,7 @@ import VerificationApplicationPage from './pages/VerificationApplication'
 import AdoptionApplication from './pages/AdoptionApplication'
 
 
+
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
@@ -97,6 +98,7 @@ function App() {
 						</ProtectedRoute>
 					}
 				/>
+
 				<Route
 					path='/verification-application'
 					element={
