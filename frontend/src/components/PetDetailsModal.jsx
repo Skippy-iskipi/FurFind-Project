@@ -68,10 +68,10 @@ const PetDetailsModal = ({ pet, onClose }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
                 {/* Back Button */}
-                <div className="p-4">
+                <div className="p-4 text-left">
                     <button
                         onClick={onClose}
-                        className="text-purple-600 hover:text-purple-700 flex items-center gap-2"
+                        className="px-4 py-1 border border-[#7A62DC] text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
                     >
                         Back
                     </button>
@@ -138,7 +138,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     {/* Apply Button */}
                     {String(pet.userId?._id || pet.userId) !== String(currentUserId) && (
                         <button
-                            className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors mt-8"
+                            className="w-full bg-[#7A62DC] text-white py-2 rounded-md hover:bg-[#6249c7] transition-colors mt-8"
                             onClick={() => navigate(`/adoption-application/${pet._id}`)}
                         >
                             Apply for Adoption

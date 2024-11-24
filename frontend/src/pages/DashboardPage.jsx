@@ -159,43 +159,43 @@ const DashboardPage = () => {
 					</div>
 					<button
 						onClick={() => navigate('/')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						Dashboard
 					</button>
 					<button
 						onClick={() => navigate('/my-profile')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						My Profile
 					</button>
 					<button
 						onClick={() => navigate('/my-applications')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						My Applications
 					</button>
 					<button
 						onClick={() => navigate('/adoption-history')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						Adoption History
 					</button>
 					<button
 						onClick={() => navigate('/adoption-request')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						Adoption Request
 					</button>
 					<button
 						onClick={() => navigate('/help-faqs')}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						Help & FAQs
 					</button>
 					<button
 						onClick={handleLogout}
-						className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors"
+						className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#6249c7] hover:text-white transition-colors"
 					>
 						Log out
 					</button>
@@ -218,19 +218,19 @@ const DashboardPage = () => {
 						<div className="flex items-center gap-4">
 							<button
 								onClick={() => setIsMenuOpen(!isMenuOpen)}
-								className="text-purple-600"
+								className="text-[#7A62DC]"
 							>
-								<Menu className="text-purple-600" />
+								<Menu className="text-[#7A62DC]" />
 							</button>
 							<button
 								onClick={() => setShowFilters(!showFilters)}
-								className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showFilters ? 'bg-purple-600 text-white' : 'border border-gray-300 text-gray-700'}`}
+								className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showFilters ? 'bg-[#7A62DC] text-white' : 'border border-gray-300 text-gray-700'}`}
 							>
-								<Filter className={`w-5 h-5 ${showFilters ? 'text-white' : 'text-purple-600'}`} />
+								<Filter className={`w-5 h-5 ${showFilters ? 'text-white' : 'text-[#7A62DC]'}`} />
 								<span className="font-medium">Filters</span>
 							</button>
 							<div className="relative">
-								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600 w-5 h-5" />
+								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7A62DC] w-5 h-5" />
 								<input
 									type="text"
 									placeholder="Search pets..."
@@ -241,7 +241,7 @@ const DashboardPage = () => {
 
 						{/* Right Section */}
 						<div className="flex items-center gap-4">
-							<Bell className="text-purple-600" />
+							<Bell className="text-[#7A62DC]" />
 							<button onClick={() => navigate('/my-profile')}>
 								<img
 									src={user.profilePicture || '/images/default-profile.jpg'}
@@ -251,7 +251,7 @@ const DashboardPage = () => {
 							</button>
 							<button
 								onClick={handlePostPetClick}
-								className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+								className="bg-[#7A62DC] text-white px-4 py-2 rounded-md hover:bg-[#6249c7] transition-colors"
 							>
 								Post a Pet
 							</button>
@@ -273,7 +273,7 @@ const DashboardPage = () => {
 								</div>
 								<button
 									onClick={handleClearAll}
-									className="text-purple-600 text-sm hover:text-purple-700"
+									className="text-[#7A62DC] text-sm hover:text-[#6249c7]"
 								>
 									Clear all
 								</button>
@@ -394,7 +394,7 @@ const DashboardPage = () => {
 										onClick={() => setActiveTab(tab)}
 										className={`pb-4 text-sm ${
 											activeTab === tab
-												? 'border-b-2 border-purple-600 text-purple-600'
+												? 'border-b-2 border-[#7A62DC] text-[#7A62DC]'
 												: 'text-gray-500 hover:text-gray-700'
 										}`}
 									>
@@ -410,12 +410,12 @@ const DashboardPage = () => {
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 									{loading && (
 										<div className="col-span-full flex justify-center items-center py-8">
-											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
 										</div>
 									)}
 									{loading ? (
 										<div className="col-span-full flex justify-center items-center">
-											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
 										</div>
 									) : pets.length === 0 ? (
 										<div className="col-span-full text-center text-gray-500">
@@ -423,7 +423,7 @@ const DashboardPage = () => {
 										</div>
 									) : (
 										pets.map((pet) => (
-											<div key={pet._id} className="bg-[#E0F4F4] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
+											<div key={pet._id} className="bg-[#D4F5F5] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
 												{/* Pet Name and Posted Time */}
 												<div className="flex justify-between items-center mb-3">
 													<h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
@@ -445,7 +445,7 @@ const DashboardPage = () => {
 												<div className="space-y-2">
 													{/* Classification Badge */}
 													<div className="flex justify-between items-center gap-2">
-														<span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm">
+														<span className="bg-[#7A62DC] text-white px-3 py-1 rounded-full text-sm">
 															{pet.classification}
 														</span>
 														<span className="text-gray-600">
@@ -460,7 +460,7 @@ const DashboardPage = () => {
 
 												{/* View Details Button */}
 												<button
-													className="w-full mt-4 bg-purple-500 text-white py-2 rounded-md hover:bg-purple-600 transition-colors"
+													className="w-full mt-4 bg-[#7A62DC] text-white py-2 rounded-md hover:bg-[#6249c7] transition-colors"
 													onClick={() => setSelectedPet(pet)}
 												>
 													View Details
@@ -503,7 +503,7 @@ const DashboardPage = () => {
 							<h2 className="text-2xl font-semibold font-lora">Only verified users are allowed to post</h2>
 							<button
 								onClick={() => setShowVerificationPopup(false)}
-								className="text-purple-600 text-2xl"
+								className="text-[#7A62DC] text-2xl"
 							>
 								&times;
 							</button>
@@ -512,7 +512,7 @@ const DashboardPage = () => {
 						<div className="flex justify-end gap-4 mt-10">
 							<button
 								onClick={() => navigate('/verification-application')}
-								className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+								className="bg-[#7A62DC] text-white px-4 py-2 rounded-md hover:bg-[#6249c7] transition-colors"
 							>
 								Get Verified
 							</button>
