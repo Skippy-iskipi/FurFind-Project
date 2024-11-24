@@ -97,7 +97,7 @@ const MyApplications = () => {
 
       {selectedApplicationId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-[#f5f5f5] p-6 rounded-md shadow-md max-w-6xl w-full h-[70vh]">
+          <div className="bg-[#f5f5f5] p-6 rounded-md shadow-md max-w-6xl h-[80vh]">
             <ApplicationDetails applicationId={selectedApplicationId} closeModal={closeModal} />
           </div>
         </div>
