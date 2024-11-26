@@ -16,11 +16,14 @@ import {
 	submitVerificationApplication,
 	updateUserRole,
 	getAdoptionApplicationDetails,
-	getApplicationDetails
+	getApplicationDetails,
+	getAllUsers,
+	getVerificationApplications
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
 import { upload } from '../middleware/multer.js';
+import { authenticate } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -58,5 +61,8 @@ router.get('/user-pets', verifyToken, getUserPets);
 router.get('/adoption-applications-details', customVerifyToken, getAdoptionApplicationDetails);
 
 router.get('/application-details/:applicationId', getApplicationDetails);
+
+router.get('/users', authenticate, getAllUsers);
+router.get('/verification-applications', authenticate, getVerificationApplications);
 
 export default router;

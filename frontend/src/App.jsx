@@ -12,6 +12,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import MyProfilePage from './pages/MyProfilePage'
 import VerificationApplicationPage from './pages/VerificationApplication'
 import AdoptionApplication from './pages/AdoptionApplication'
+import AdminDashboard from './pages/AdminDashboard'
 
 
 
@@ -104,6 +105,15 @@ function App() {
 					element={
 						<ProtectedRoute>
 							<VerificationApplicationPage />
+						</ProtectedRoute>
+					}
+				/>
+
+				<Route
+					path='/admin-dashboard'
+					element={
+						<ProtectedRoute>
+							<AdminDashboard />
 						</ProtectedRoute>
 					}
 				/>

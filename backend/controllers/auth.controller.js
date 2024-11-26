@@ -8,6 +8,7 @@ import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import Pet from "../models/pet.model.js";
 import { AdoptionApplication } from '../models/adoptionApplication.model.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
@@ -585,6 +586,62 @@ export const getApplicationDetails = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+export const getAllUsers = async (_, res) => {
+    try {
+        const users = await User.find({ email: { $ne: "furfindadmin@furfind.com" } })
+            .select('name email profilePicture');
+        res.status(200).json({
+            success: true,
+            users,
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching users",
+            error: error.message,
+        });
+    }
+};
+
+export const getVerificationApplications = async (_, res) => {
+    try {
+        const applications = await VerificationApplication.find()
+            .populate('userId', 'name email profilePicture');
+
+        const formattedApplications = applications.map(app => ({
+            id: app._id,
+            name: app.userId.name,
+            email: app.userId.email,
+            profilePicture: app.userId.profilePicture,
+            submittedDate: app.submittedAt,
+            type: app.type,
+            address: app.formData.address,
+            contactNumber: app.formData.contactNumber,
+            occupation: app.formData.occupation,
+            emergencyFirstName: app.formData.emergencyFirstName,
+            emergencyLastName: app.formData.emergencyLastName,
+            emergencyAddress: app.formData.emergencyAddress,
+            emergencyContact: app.formData.emergencyContact,
+            governmentId: app.formData.governmentId,
+            proofOfResidence: app.formData.proofOfResidence,
+            petCareExperience: app.formData.petCareExperience
+        }));
+
+        res.status(200).json({
+            success: true,
+            applications: formattedApplications,
+        });
+    } catch (error) {
+        console.error('Error fetching verification applications:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching verification applications",
+            error: error.message,
+        });
+    }
 };
 
 

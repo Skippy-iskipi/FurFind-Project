@@ -5,6 +5,11 @@ const API_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/
 
 axios.defaults.withCredentials = true;
 
+const isTokenExpired = (token) => {
+	const payload = JSON.parse(atob(token.split('.')[1]));
+	return payload.exp * 1000 < Date.now();
+};
+
 export const useAuthStore = create((set) => ({
 	user: null,
 	isAuthenticated: false,
@@ -13,6 +18,7 @@ export const useAuthStore = create((set) => ({
 	isCheckingAuth: true,
 	message: null,
 
+	set: (newState) => set((state) => ({ ...state, ...newState })),
 
 	signup: async (email, password, name) => {
 		set({ isLoading: true, error: null });
@@ -30,17 +36,38 @@ export const useAuthStore = create((set) => ({
 		await new Promise(resolve => setTimeout(resolve, 2000));
 		try {
 			const response = await axios.post(`${API_URL}/login`, { email, password });
+
+			// Check if the login is successful
 			if (response.data.success) {
-				localStorage.setItem('token', response.data.token);
-				console.log('Token stored:', localStorage.getItem('token'));
+				const token = response.data.token;
+				console.log('Token received:', token);
+
+				if (isTokenExpired(token)) {
+					console.error('Token is expired');
+					// Handle token expiration (e.g., redirect to login)
+				}
+				localStorage.setItem('token', token);
+
+				// Check if the user is the admin
+				if (email === "furfindadmin@furfind.com") {
+					console.log('Admin logged in with token:', token);
+
+					// Redirect to admin dashboard
+					window.location.href = '/admin-dashboard';
+				}
+
+				// Update the state
 				set({
 					isAuthenticated: true,
 					user: response.data.user,
 					error: null,
 					isLoading: false,
 				});
+			} else {
+				console.error('Login failed:', response.data.message);
 			}
 		} catch (error) {
+			console.error('Error during login:', error);
 			set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
 			throw error;
 		}
