@@ -15,7 +15,7 @@ const DocumentViewerModal = ({ isOpen, onClose, documentUrl, title }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] relative">
+            <div className="bg-white rounded-md p-6 w-full max-w-4xl max-h-[90vh] relative">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold">{title}</h3>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -25,7 +25,7 @@ const DocumentViewerModal = ({ isOpen, onClose, documentUrl, title }) => {
                     </button>
                 </div>
                 
-                <div className="h-[70vh] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+                <div className="h-[70vh] w-full flex items-center justify-center bg-gray-100 rounded-md">
                     {isLoading && (
                         <div className="text-gray-500">Loading...</div>
                     )}
