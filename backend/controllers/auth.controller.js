@@ -608,7 +608,8 @@ export const getAllUsers = async (_, res) => {
 
 export const getVerificationApplications = async (_, res) => {
     try {
-        const applications = await VerificationApplication.find()
+        // Add filter for Pet Owner type
+        const applications = await VerificationApplication.find({ type: 'Pet Owner' })
             .populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
@@ -646,7 +647,8 @@ export const getVerificationApplications = async (_, res) => {
 
 export const getAnimalShelterApplications = async (_, res) => {
     try {
-        const applications = await VerificationApplication.find({ type: 'Shelter' }) // Filter for Animal Shelter
+        // Add filter for Animal Shelter type
+        const applications = await VerificationApplication.find({ type: 'Animal Shelter' })
             .populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
@@ -656,16 +658,14 @@ export const getAnimalShelterApplications = async (_, res) => {
             profilePicture: app.userId.profilePicture,
             submittedDate: app.submittedAt,
             type: app.type,
-            address: app.formData.address,
-            contactNumber: app.formData.contactNumber,
-            occupation: app.formData.occupation,
-            emergencyFirstName: app.formData.emergencyFirstName,
-            emergencyLastName: app.formData.emergencyLastName,
-            emergencyAddress: app.formData.emergencyAddress,
-            emergencyContact: app.formData.emergencyContact,
-            governmentId: app.formData.governmentId,
-            proofOfResidence: app.formData.proofOfResidence,
-            petCareExperience: app.formData.petCareExperience
+            organizationName: app.formData.organizationName,
+            registrationNumber: app.formData.registrationNumber,
+            yearEstablished: app.formData.yearEstablished,
+            shelterAddress: app.formData.shelterAddress,
+            shelterContact: app.formData.shelterContact,
+            organizationalBackground: app.formData.organizationalBackground,
+            registrationCertificate: app.formData.registrationCertificate,
+            facilityPhotos: app.formData.facilityPhotos
         }));
 
         res.status(200).json({
@@ -681,5 +681,4 @@ export const getAnimalShelterApplications = async (_, res) => {
         });
     }
 };
-
 
