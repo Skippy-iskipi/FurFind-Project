@@ -1,32 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
-import ApplicationModal from '../components/ApplicationModal';
+import VerificationReviewModal from '../components/VerificationReviewModal';
 import ShelterModal from '../components/ShelterModal';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('userManagement');
     const [users, setUsers] = useState([]);
-    const [verificationApplications, setVerificationApplications] = useState([]);
+    const [petOwnerApplications, setPetOwnerApplications] = useState([]);
     const [animalShelterApplications, setAnimalShelterApplications] = useState([]);
     const { logout } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedApplication, setSelectedApplication] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
     const [isShelterModalOpen, setIsShelterModalOpen] = useState(false);
-
-    const fetchAnimalShelterApplications = async () => {
-        try {
-            const response = await axios.get('/api/animal-shelter-applications');
-            setAnimalShelterApplications(response.data.applications);
-        } catch (error) {
-            console.error('Error fetching animal shelter applications:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchAnimalShelterApplications();
-    }, []);
 
     const handleLogout = async () => {
         try {
@@ -38,72 +26,106 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchUsers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/auth/users', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                setUsers(data.users);
+            } else {
+                console.error('Failed to fetch users:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
+
+    const fetchPetOwnerApplications = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/auth/verification-applications', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                setPetOwnerApplications(data.applications);
+            } else {
+                console.error('Failed to fetch pet owner applications:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching pet owner applications:', error);
+        }
+    };
+
+    const fetchAnimalShelterApplications = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/auth/animal-shelter-applications', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                setAnimalShelterApplications(data.applications);
+            } else {
+                console.error('Failed to fetch animal shelter applications:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching animal shelter applications:', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/auth/users', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setUsers(data.users);
-                } else {
-                    console.error('Failed to fetch users:', data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
-
-        const fetchVerificationApplications = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/auth/verification-applications', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                const data = await response.json();
-                console.log('Raw verification applications data:', data);
-                if (data.success) {
-                    setVerificationApplications(data.applications);
-                } else {
-                    console.error('Failed to fetch verification applications:', data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching verification applications:', error);
-            }
-        };
-
-
         if (activeTab === 'userManagement') {
             fetchUsers();
-        } else if (activeTab === 'verificationApplications') {
-            fetchVerificationApplications();
+        } else if (activeTab === 'petOwnerApplications') {
+            fetchPetOwnerApplications();
+        } else if (activeTab === 'animalShelterApplications') {
+            fetchAnimalShelterApplications();
         }
     }, [activeTab]);
 
-    const filteredApplications = verificationApplications.filter(application => {
-        return (
-            application.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            application.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredApplications = activeTab === 'petOwnerApplications'
+        ? petOwnerApplications.filter(application => 
+            application.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            application.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : animalShelterApplications.filter(application =>
+            application.organizationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            application.email?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    });
 
     const handleReviewClick = (application) => {
-        console.log('Full application data:', application);
         setSelectedApplication(application);
-        if (application.type === 'Pet Owner') {
-            setIsModalOpen(true);
-        } else if (application.type === 'Shelter') {
+        if (activeTab === 'petOwnerApplications') {
+            setIsVerificationModalOpen(true);
+        } else {
             setIsShelterModalOpen(true);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsVerificationModalOpen(false);
+        setIsShelterModalOpen(false);
+        setSelectedApplication(null);
+        if (activeTab === 'petOwnerApplications') {
+            fetchPetOwnerApplications();
+        } else if (activeTab === 'animalShelterApplications') {
+            fetchAnimalShelterApplications();
         }
     };
 
@@ -123,7 +145,7 @@ const AdminDashboard = () => {
 
             {/* Main Content */}
             <main className="flex-grow p-4">
-                {/* Tabs */}
+                {/* Updated Tabs */}
                 <div className="flex space-x-8 mb-4">
                     <button
                         className={`relative py-2 text-lg font-semibold ${activeTab === 'userManagement' ? 'text-black' : 'text-gray-400'}`}
@@ -135,11 +157,20 @@ const AdminDashboard = () => {
                         )}
                     </button>
                     <button
-                        className={`relative py-2 text-lg font-semibold ${activeTab === 'verificationApplications' ? 'text-black' : 'text-gray-400'}`}
-                        onClick={() => setActiveTab('verificationApplications')}
+                        className={`relative py-2 text-lg font-semibold ${activeTab === 'petOwnerApplications' ? 'text-black' : 'text-gray-400'}`}
+                        onClick={() => setActiveTab('petOwnerApplications')}
                     >
-                        Verification Applications
-                        {activeTab === 'verificationApplications' && (
+                        Pet Owner Applications
+                        {activeTab === 'petOwnerApplications' && (
+                            <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#7A62DC]"></span>
+                        )}
+                    </button>
+                    <button
+                        className={`relative py-2 text-lg font-semibold ${activeTab === 'animalShelterApplications' ? 'text-black' : 'text-gray-400'}`}
+                        onClick={() => setActiveTab('animalShelterApplications')}
+                    >
+                        Animal Shelter Applications
+                        {activeTab === 'animalShelterApplications' && (
                             <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#7A62DC]"></span>
                         )}
                     </button>
@@ -180,10 +211,12 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 )}
-                {activeTab === 'verificationApplications' && (
+                {(activeTab === 'petOwnerApplications' || activeTab === 'animalShelterApplications') && (
                     <div>
                         <div className="mt-10 mb-5 flex justify-between items-center">
-                            <h2 className="text-xl font-semibold mb-4">Verification Applications</h2>
+                            <h2 className="text-xl font-semibold">
+                                {activeTab === 'petOwnerApplications' ? 'Pet Owner Applications' : 'Animal Shelter Applications'}
+                            </h2>
                             <input
                                 type="text"
                                 placeholder="Search applications..."
@@ -193,22 +226,32 @@ const AdminDashboard = () => {
                             />
                         </div>
                         <div className="border rounded-lg p-4">
-                            {verificationApplications.map(application => (
-                                <div key={application.email} className="p-2 border-b flex items-center">
-                                    <img
-                                        src={application.profilePicture || './images/default-profile.jpg'}
-                                        alt={`${application.name}'s profile`}
-                                        className="h-16 w-16 rounded-full mr-5"
-                                    />
-                                    <div className='font-opensans'>
-                                        <h3 className="font-semibold">{application.name}</h3>
-                                        <p>{application.email}</p>
-                                        <p>Submitted: {new Date(application.submittedDate).toLocaleDateString()}</p>
+                            {filteredApplications.map(application => (
+                                <div key={application.email} className="p-4 border-b last:border-b-0 flex items-center justify-between">
+                                    <div className="flex items-center flex-1">
+                                        <img
+                                            src={application.profilePicture || '/images/default-profile.jpg'}
+                                            alt={`${activeTab === 'petOwnerApplications' ? application.name : application.organizationName}'s profile`}
+                                            className="h-16 w-16 rounded-full object-cover mr-5"
+                                        />
+                                        <div className='font-opensans'>
+                                            <h3 className="font-semibold text-lg">
+                                                {activeTab === 'petOwnerApplications' 
+                                                    ? application.name 
+                                                    : application.organizationName}
+                                            </h3>
+                                            <p className="text-gray-600">{application.email}</p>
+                                            <p className="text-gray-500 text-sm">
+                                                Submitted: {new Date(application.submittedDate).toLocaleDateString()}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="ml-auto">
-                                        <span className="bg-[#7A62DC] text-white px-3 py-1 rounded-full mr-2">{application.type}</span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="bg-[#7A62DC] text-white px-4 py-1.5 rounded-full text-sm">
+                                            {activeTab === 'petOwnerApplications' ? 'Pet Owner' : 'Animal Shelter'}
+                                        </span>
                                         <button 
-                                            className='font-medium border-2 border-[#7A62DC] py-2 px-2 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-[#f5f5f5]'
+                                            className='font-medium border-2 border-[#7A62DC] py-2 px-4 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors duration-200'
                                             onClick={() => handleReviewClick(application)}
                                         >
                                             Review Application
@@ -217,28 +260,32 @@ const AdminDashboard = () => {
                                 </div>
                             ))}
                         </div>
-                        {/* Pagination */}
-                        <div className="flex justify-end mt-4 space-x-2">
+                        <div className="flex justify-end mt-6 gap-2">
                             <button className="px-4 py-2 bg-[#7A62DC] text-white rounded-md">1</button>
-                            <button className="px-4 py-2 bg-gray-200 rounded-md">2</button>
-                            <button className="px-4 py-2 bg-gray-200 rounded-md">3</button>
-                            <button className="px-4 py-2 bg-gray-200 rounded-md">Next</button>
+                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">2</button>
+                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">3</button>
+                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Next</button>
                         </div>
                     </div>
                 )}
             </main>
 
-            {/* Add the Modals */}
-            <ApplicationModal 
-                application={selectedApplication}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
-            <ShelterModal 
-                application={selectedApplication}
-                isOpen={isShelterModalOpen}
-                onClose={() => setIsShelterModalOpen(false)}
-            />
+            {/* Separate Modals */}
+            {activeTab === 'petOwnerApplications' && (
+                <VerificationReviewModal
+                    isOpen={isVerificationModalOpen}
+                    onClose={handleCloseModal}
+                    application={selectedApplication}
+                />
+            )}
+
+            {activeTab === 'animalShelterApplications' && (
+                <ShelterModal
+                    application={selectedApplication}
+                    isOpen={isShelterModalOpen}
+                    onClose={handleCloseModal}
+                />
+            )}
         </div>
     );
 };
