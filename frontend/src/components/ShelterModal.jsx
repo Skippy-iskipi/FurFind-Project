@@ -107,7 +107,7 @@ const ShelterModal = ({ application, isOpen, onClose, onActionComplete }) => {
     return (
         <>
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-10 w-[1000px] max-h-[90vh] overflow-y-auto">
+                <div className="bg-white rounded-md p-10 w-[1000px] max-h-[90vh] overflow-y-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-4">
                         <div>
@@ -127,7 +127,7 @@ const ShelterModal = ({ application, isOpen, onClose, onActionComplete }) => {
                     <div className="grid grid-cols-2 gap-8">
                         {/* Left Column */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">Basic Information</h3>
+                            <h3 className="text-md font-bold mb-4">Basic Information</h3>
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
@@ -158,7 +158,7 @@ const ShelterModal = ({ application, isOpen, onClose, onActionComplete }) => {
 
                         {/* Right Column */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">Required Documents</h3>
+                            <h3 className="text-md font-bold mb-4">Required Documents</h3>
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Registration Certificate</label>
@@ -243,7 +243,7 @@ const ShelterModal = ({ application, isOpen, onClose, onActionComplete }) => {
 
                     {/* Additional Information */}
                     <div className="mt-8">
-                        <h3 className="text-lg font-bold mb-4">Additional Information</h3>
+                        <h3 className="text-md font-bold mb-4">Additional Information</h3>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Organization Background</label>
                             <p className="p-4 bg-gray-50 rounded-md min-h-[100px]">

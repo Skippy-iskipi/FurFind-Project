@@ -17,6 +17,7 @@ const AdminDashboard = () => {
     const [isShelterModalOpen, setIsShelterModalOpen] = useState(false);
     const [applications, setApplications] = useState([]);
     const [statusFilter, setStatusFilter] = useState('Pending');
+    const [userSearchQuery, setUserSearchQuery] = useState('');
 
     const handleLogout = async () => {
         try {
@@ -107,21 +108,30 @@ const AdminDashboard = () => {
     }, [activeTab]);
 
     const filteredApplications = activeTab === 'petOwnerApplications'
-        ? (petOwnerApplications || []).filter(application =>
-            application?.status?.toLowerCase() === statusFilter.toLowerCase() &&
-            (
-                (application?.formData?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (application?.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+        ? (petOwnerApplications || [])
+            .filter(application => 
+                application?.status === statusFilter
             )
-        )
-        : (animalShelterApplications || []).filter(application =>
-            application?.status?.toLowerCase() === statusFilter.toLowerCase() &&
-            (
-                (application?.formData?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (application?.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+            .filter(application =>
+                !searchQuery || (
+                    (application?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                )
             )
-        );
+        : (animalShelterApplications || [])
+            .filter(application => 
+                application?.status === statusFilter
+            )
+            .filter(application =>
+                !searchQuery || (
+                    (application?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
 
+    console.log('Current Status Filter:', statusFilter);
+    console.log('Current Applications:', petOwnerApplications || animalShelterApplications);
+    console.log('Filtered Applications:', filteredApplications);
 
     const handleReviewClick = (application) => {
         setSelectedApplication(application);
@@ -152,6 +162,11 @@ const AdminDashboard = () => {
         setSelectedApplication(application);
     };
 
+    const filteredUsers = users.filter(user => 
+        user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
+    );
+
     return (
         <div className="flex flex-col h-screen">
             {/* Header */}
@@ -171,7 +186,7 @@ const AdminDashboard = () => {
                 {/* Updated Tabs */}
                 <div className="flex space-x-8 mb-4">
                     <button
-                        className={`relative py-2 text-lg font-semibold ${activeTab === 'userManagement' ? 'text-black' : 'text-gray-400'}`}
+                        className={`relative py-2 text-md font-semibold ${activeTab === 'userManagement' ? 'text-black' : 'text-gray-400'}`}
                         onClick={() => setActiveTab('userManagement')}
                     >
                         User Management
@@ -180,7 +195,7 @@ const AdminDashboard = () => {
                         )}
                     </button>
                     <button
-                        className={`relative py-2 text-lg font-semibold ${activeTab === 'petOwnerApplications' ? 'text-black' : 'text-gray-400'}`}
+                        className={`relative py-2 text-md font-semibold ${activeTab === 'petOwnerApplications' ? 'text-black' : 'text-gray-400'}`}
                         onClick={() => setActiveTab('petOwnerApplications')}
                     >
                         Pet Owner Applications
@@ -189,7 +204,7 @@ const AdminDashboard = () => {
                         )}
                     </button>
                     <button
-                        className={`relative py-2 text-lg font-semibold ${activeTab === 'animalShelterApplications' ? 'text-black' : 'text-gray-400'}`}
+                        className={`relative py-2 text-md font-semibold ${activeTab === 'animalShelterApplications' ? 'text-black' : 'text-gray-400'}`}
                         onClick={() => setActiveTab('animalShelterApplications')}
                     >
                         Animal Shelter Applications
@@ -206,24 +221,32 @@ const AdminDashboard = () => {
                             <h2 className="text-xl font-semibold mb-4">Users</h2>
                             <input
                                 type="text"
-                                placeholder="Search users..."
+                                placeholder="Search user..."
+                                value={userSearchQuery}
+                                onChange={(e) => setUserSearchQuery(e.target.value)}
                                 className="border border-gray-300 rounded-md p-2 w-1/6 focus:border-[#7A62DC] focus:outline-none"
                             />
                         </div>
-                        <div className="border rounded-lg p-4">
-                            {users.map(user => (
-                                <div key={user.email} className="p-2 border-b flex items-center">
-                                    <img
-                                        src={user.profilePicture || './images/default-profile.jpg'}
-                                        alt={`${user.name}'s profile`}
-                                        className="h-10 w-10 rounded-full mr-2"
-                                    />
-                                    <div>
-                                        <h3 className="font-semibold">{user.name}</h3>
-                                        <p>{user.email}</p>
+                        <div className="border rounded-md p-4">
+                            {filteredUsers.length > 0 ? (
+                                filteredUsers.map(user => (
+                                    <div key={user.email} className="p-2 border-b flex items-center">
+                                        <img
+                                            src={user.profilePicture || './images/default-profile.jpg'}
+                                            alt={`${user.name}'s profile`}
+                                            className="h-10 w-10 rounded-full mr-2"
+                                        />
+                                        <div>
+                                            <h3 className="font-semibold">{user.name}</h3>
+                                            <p>{user.email}</p>
+                                        </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    No users found matching your search
                                 </div>
-                            ))}
+                            )}
                         </div>
                         {/* Pagination */}
                         <div className="flex justify-end mt-4 space-x-2">
@@ -239,8 +262,8 @@ const AdminDashboard = () => {
                         <div className="mt-10 mb-5 flex justify-between items-center">
                             <input
                                 type="text"
-                                placeholder="Search applications..."
-                                className="border border-gray-300 rounded-md p-2 w-1/6 focus:border-[#7A62DC] focus:outline-none"
+                                placeholder="Search application..."
+                                className="border border-gray-300 rounded-md p-2 w-1/3 focus:border-[#7A62DC] focus:outline-none"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -266,7 +289,7 @@ const AdminDashboard = () => {
                             ))}
                         </div>
 
-                        <div className="border rounded-lg p-4">
+                        <div className="border rounded-md p-4">
                             {filteredApplications.length > 0 ? (
                                 filteredApplications.map(application => (
                                     <div key={application.id} className="p-4 border-b last:border-b-0 flex items-center justify-between">
@@ -277,7 +300,7 @@ const AdminDashboard = () => {
                                                 className="h-16 w-16 rounded-full object-cover mr-5"
                                             />
                                             <div className='font-opensans'>
-                                                <h3 className="font-semibold text-lg">
+                                                <h3 className="font-semibold text-md">
                                                     {application.name}
                                                 </h3>
                                                 <p className="text-gray-600">{application.email}</p>
