@@ -644,5 +644,42 @@ export const getVerificationApplications = async (_, res) => {
     }
 };
 
+export const getAnimalShelterApplications = async (_, res) => {
+    try {
+        const applications = await VerificationApplication.find({ type: 'Shelter' }) // Filter for Animal Shelter
+            .populate('userId', 'name email profilePicture');
+
+        const formattedApplications = applications.map(app => ({
+            id: app._id,
+            name: app.userId.name,
+            email: app.userId.email,
+            profilePicture: app.userId.profilePicture,
+            submittedDate: app.submittedAt,
+            type: app.type,
+            address: app.formData.address,
+            contactNumber: app.formData.contactNumber,
+            occupation: app.formData.occupation,
+            emergencyFirstName: app.formData.emergencyFirstName,
+            emergencyLastName: app.formData.emergencyLastName,
+            emergencyAddress: app.formData.emergencyAddress,
+            emergencyContact: app.formData.emergencyContact,
+            governmentId: app.formData.governmentId,
+            proofOfResidence: app.formData.proofOfResidence,
+            petCareExperience: app.formData.petCareExperience
+        }));
+
+        res.status(200).json({
+            success: true,
+            applications: formattedApplications,
+        });
+    } catch (error) {
+        console.error('Error fetching animal shelter applications:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching animal shelter applications",
+            error: error.message,
+        });
+    }
+};
 
 
