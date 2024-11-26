@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
 		},
 		role: {
 			type: String,
-			enum: ["Adopter", "Pet Owner", "Shelter", "Admin"],
+			enum: ["Adopter", "Pet Owner", "Animal Shelter", "Admin"],
 			default: "Adopter",
 		},
 		profilePicture: {

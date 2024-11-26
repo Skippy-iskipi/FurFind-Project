@@ -169,7 +169,7 @@ const PostPetModal = ({ isOpen, onClose }) => {
                             <div className="w-10 h-10 rounded-full bg-gray-200">
                                 {user?.profilePicture && (
                                     <img
-                                        src={user.profilePicture}
+                                        src={user.profilePicture || './images/default-profile.jpg'}
                                         alt="Profile"
                                         className="w-full h-full rounded-full object-cover"
                                     />

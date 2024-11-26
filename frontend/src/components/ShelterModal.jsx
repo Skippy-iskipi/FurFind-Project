@@ -5,7 +5,6 @@ const ShelterModal = ({ application, isOpen, onClose, onActionComplete }) => {
     const [viewingDocument, setViewingDocument] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     
-    console.log('Application data:', application);
     
     if (!isOpen || !application) return null;
 

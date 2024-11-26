@@ -30,7 +30,7 @@ const DashboardPage = () => {
 	const handlePostPetClick = () => {
 		if (user.role === 'Adopter') {
 			setShowVerificationPopup(true);
-		} else if (user.role === 'Pet Owner' || user.role === 'Shelter') {
+		} else if (user.role === 'Pet Owner' || user.role === 'Animal Shelter') {
 			setIsModalOpen(true);
 		}
 	};

@@ -52,8 +52,6 @@ const AdminDashboard = () => {
     const fetchPetOwnerApplications = async () => {
         try {
             const token = localStorage.getItem('token');
-            console.log('Fetching pet owner applications...'); // Debug log
-            
             const response = await fetch('http://localhost:5000/api/auth/verification-applications', {
                 method: 'GET',
                 headers: {
@@ -63,22 +61,15 @@ const AdminDashboard = () => {
             });
             
             const data = await response.json();
-            console.log('Received data:', data); // Debug log
-            
-            if (data.success && Array.isArray(data.applications)) { // Check if applications exists and is an array
-                // Make sure we're checking the status case-insensitively
-                const pendingApplications = data.applications.filter(app => 
-                    app && app.status && app.status.toLowerCase() === 'pending'
-                );
-                console.log('Filtered pending applications:', pendingApplications); // Debug log
-                setPetOwnerApplications(pendingApplications);
+            if (data.success) {
+                setPetOwnerApplications(data.applications);
             } else {
-                console.error('Invalid response format:', data);
-                setPetOwnerApplications([]); // Set empty array if no valid data
+                console.error('Failed to fetch pet owner applications:', data.message);
+                setPetOwnerApplications([]);
             }
         } catch (error) {
             console.error('Error fetching pet owner applications:', error);
-            setPetOwnerApplications([]); // Set empty array on error
+            setPetOwnerApplications([]);
         }
     };
 
@@ -94,13 +85,14 @@ const AdminDashboard = () => {
             });
             const data = await response.json();
             if (data.success) {
-                const pendingApplications = data.applications.filter(app => app.status === 'Pending');
-                setAnimalShelterApplications(pendingApplications);
+                setAnimalShelterApplications(data.applications);
             } else {
                 console.error('Failed to fetch animal shelter applications:', data.message);
+                setAnimalShelterApplications([]);
             }
         } catch (error) {
             console.error('Error fetching animal shelter applications:', error);
+            setAnimalShelterApplications([]);
         }
     };
 
@@ -115,20 +107,21 @@ const AdminDashboard = () => {
     }, [activeTab]);
 
     const filteredApplications = activeTab === 'petOwnerApplications'
-        ? (petOwnerApplications || []).filter(application => 
-            application?.status?.toLowerCase() === statusFilter.toLowerCase() && 
+        ? (petOwnerApplications || []).filter(application =>
+            application?.status?.toLowerCase() === statusFilter.toLowerCase() &&
             (
-                (application?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                (application?.formData?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (application?.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
         : (animalShelterApplications || []).filter(application =>
-            application?.status?.toLowerCase() === statusFilter.toLowerCase() && 
+            application?.status?.toLowerCase() === statusFilter.toLowerCase() &&
             (
-                (application?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                (application?.formData?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (application?.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
             )
         );
+
 
     const handleReviewClick = (application) => {
         setSelectedApplication(application);
