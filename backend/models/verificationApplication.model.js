@@ -14,6 +14,7 @@ const petOwnerSchema = new mongoose.Schema({
     agreeToGuidelines: { type: Boolean, required: true },
     governmentId: { type: String, required: true },
     proofOfResidence: { type: String, required: true },
+    status: { type: String, default: 'Pending' },
 });
 
 // Shelter Schema
@@ -29,6 +30,7 @@ const shelterSchema = new mongoose.Schema({
     agreeToGuidelines: { type: Boolean, required: true },
     registrationCertificate: { type: String, required: true },
     facilityPhotos: [{ type: String, required: true }],
+    status: { type: String, default: 'Pending' },
 });
 
 // Main Verification Application Schema

@@ -64,6 +64,55 @@ export const submitVerificationApplication = [
     }
 ];
 
+// Approve Verification Application
+export const approveVerificationApplication = async (req, res) => {
+    const { applicationId } = req.params;
+
+    try {
+        const application = await VerificationApplication.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        // Update application status
+        application.status = 'approved';
+        await application.save();
+
+        // Update user role based on application type
+        const user = await User.findById(application.userId);
+        if (user) {
+            user.role = application.type; // Assuming type is either 'Pet Owner' or 'Shelter'
+            await user.save();
+        }
+
+        res.status(200).json({ success: true, message: 'Application approved successfully' });
+    } catch (error) {
+        console.error('Error approving application:', error);
+        res.status(500).json({ success: false, message: 'Error approving application', error: error.message });
+    }
+};
+
+// Reject Verification Application
+export const rejectVerificationApplication = async (req, res) => {
+    const { applicationId } = req.params;
+
+    try {
+        const application = await VerificationApplication.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+
+        // Update application status
+        application.status = 'rejected';
+        await application.save();
+
+        res.status(200).json({ success: true, message: 'Application rejected successfully' });
+    } catch (error) {
+        console.error('Error rejecting application:', error);
+        res.status(500).json({ success: false, message: 'Error rejecting application', error: error.message });
+    }
+};
+
 export const updateUserRole = async (req, res) => {
     try {
         const { userId } = req.body;

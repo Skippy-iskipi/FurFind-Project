@@ -1,25 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import ApplicationModal from '../components/ApplicationModal';
+import ShelterModal from '../components/ShelterModal';
+import axios from 'axios';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('userManagement');
     const [users, setUsers] = useState([]);
     const [verificationApplications, setVerificationApplications] = useState([]);
-	const { logout } = useAuthStore();
+    const [animalShelterApplications, setAnimalShelterApplications] = useState([]);
+    const { logout } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isShelterModalOpen, setIsShelterModalOpen] = useState(false);
 
-	const handleLogout = async () => {
-		try {
-			await logout();
-			navigate('/login');
-			toast.success('Logged out successfully');
-		} catch (error) {
-			toast.error('Failed to logout');
-		}
-	};
+    const fetchAnimalShelterApplications = async () => {
+        try {
+            const response = await axios.get('/api/animal-shelter-applications');
+            setAnimalShelterApplications(response.data.applications);
+        } catch (error) {
+            console.error('Error fetching animal shelter applications:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAnimalShelterApplications();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+            toast.success('Logged out successfully');
+        } catch (error) {
+            toast.error('Failed to logout');
+        }
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -83,7 +100,11 @@ const AdminDashboard = () => {
     const handleReviewClick = (application) => {
         console.log('Full application data:', application);
         setSelectedApplication(application);
-        setIsModalOpen(true);
+        if (application.type === 'Pet Owner') {
+            setIsModalOpen(true);
+        } else if (application.type === 'Shelter') {
+            setIsShelterModalOpen(true);
+        }
     };
 
     return (
@@ -167,12 +188,12 @@ const AdminDashboard = () => {
                                 type="text"
                                 placeholder="Search applications..."
                                 className="border border-gray-300 rounded-md p-2 w-1/6 focus:border-[#7A62DC] focus:outline-none"
-                                value={searchQuery} // Bind the input value to searchQuery
-                                onChange={(e) => setSearchQuery(e.target.value)} // Update searchQuery on input change
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                         <div className="border rounded-lg p-4">
-                            {filteredApplications.map(application => (
+                            {verificationApplications.map(application => (
                                 <div key={application.email} className="p-2 border-b flex items-center">
                                     <img
                                         src={application.profilePicture || './images/default-profile.jpg'}
@@ -207,11 +228,16 @@ const AdminDashboard = () => {
                 )}
             </main>
 
-            {/* Add the Modal */}
+            {/* Add the Modals */}
             <ApplicationModal 
                 application={selectedApplication}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+            />
+            <ShelterModal 
+                application={selectedApplication}
+                isOpen={isShelterModalOpen}
+                onClose={() => setIsShelterModalOpen(false)}
             />
         </div>
     );
