@@ -82,7 +82,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     <div className="flex items-center gap-4 mb-6">
                         <div className="flex items-center gap-4">
                             <img
-                                src={posterProfilePicture || 'default-profile.png'}
+                                src={posterProfilePicture || './images/default-profile.jpg'}
                                 alt={posterName || 'Anonymous'}
                                 className="w-12 h-12 rounded-full object-cover mr-2 bg-gray-200"
                             />

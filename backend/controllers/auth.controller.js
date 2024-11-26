@@ -608,10 +608,9 @@ export const getAllUsers = async (_, res) => {
 
 export const getVerificationApplications = async (_, res) => {
     try {
-        // Add filter for both Pet Owner type AND Pending status
+        // Remove the status filter to get all Pet Owner applications
         const applications = await VerificationApplication.find({ 
-            type: 'Pet Owner',
-            status: 'Pending'  // Add this filter
+            type: 'Pet Owner'
         }).populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
@@ -652,10 +651,9 @@ export const getVerificationApplications = async (_, res) => {
 
 export const getAnimalShelterApplications = async (_, res) => {
     try {
-        // Add filter for both Animal Shelter type AND Pending status
+        // Remove the status filter to get all Animal Shelter applications
         const applications = await VerificationApplication.find({ 
-            type: 'Animal Shelter',
-            status: 'Pending'  // Add this filter
+            type: 'Animal Shelter'
         }).populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
@@ -665,7 +663,7 @@ export const getAnimalShelterApplications = async (_, res) => {
             profilePicture: app.userId.profilePicture,
             submittedDate: app.submittedAt,
             type: app.type,
-            status: app.status,  // Add status to formatted data
+            status: app.status,
             organizationName: app.formData.organizationName,
             registrationNumber: app.formData.registrationNumber,
             yearEstablished: app.formData.yearEstablished,
@@ -755,7 +753,7 @@ export const rejectVerificationApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
         
-        // Find and delete the verification application
+        // Find the verification application
         const application = await VerificationApplication.findById(applicationId);
         
         if (!application) {
@@ -765,12 +763,12 @@ export const rejectVerificationApplication = async (req, res) => {
             });
         }
 
-        // Delete the application
-        await VerificationApplication.findByIdAndDelete(applicationId);
+        application.status = 'Rejected';
+        await application.save();
 
         res.status(200).json({
             success: true,
-            message: "Application rejected and deleted successfully"
+            message: "Application rejected successfully"
         });
 
     } catch (error) {
