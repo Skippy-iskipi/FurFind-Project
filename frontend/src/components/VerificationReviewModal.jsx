@@ -1,10 +1,101 @@
 import React, { useState } from 'react';
 import DocumentViewerModal from './DocumentViewerModal';
 
-const VerificationReviewModal = ({ application, isOpen, onClose }) => {
+const VerificationReviewModal = ({ application, isOpen, onClose, onActionComplete }) => {
     const [viewingDocument, setViewingDocument] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     
     if (!isOpen || !application) return null;
+
+    const handleApprove = async () => {
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            
+            const applicationId = application.id;
+            if (!applicationId) {
+                throw new Error('Application ID is missing');
+            }
+
+            console.log('Approving application:', applicationId); // Debug log
+            
+            const response = await fetch(`http://localhost:5000/api/auth/verification-applications/${applicationId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Server responded with status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Application approved successfully');
+                onClose();
+                if (onActionComplete) onActionComplete();
+            } else {
+                throw new Error(data.message || 'Failed to approve application');
+            }
+        } catch (error) {
+            console.error('Error approving application:', error);
+            alert(`Error approving application: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleReject = async () => {
+        if (!window.confirm('Are you sure you want to reject this application? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            
+            const applicationId = application.id;
+            if (!applicationId) {
+                throw new Error('Application ID is missing');
+            }
+
+            console.log('Rejecting application:', applicationId); // Debug log
+            
+            const response = await fetch(`http://localhost:5000/api/auth/verification-applications/${applicationId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Server responded with status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Application rejected successfully');
+                onClose();
+                if (onActionComplete) onActionComplete();
+            } else {
+                throw new Error(data.message || 'Failed to reject application');
+            }
+        } catch (error) {
+            console.error('Error rejecting application:', error);
+            alert(`Error rejecting application: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <>
@@ -16,13 +107,13 @@ const VerificationReviewModal = ({ application, isOpen, onClose }) => {
                             <p className="text-gray-600">Review the application details</p>
                         </div>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6 text-[#7A62DC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-8">
+                    <div className="grid grid-cols-2 gap-12">
                         {/* Left Column */}
                         <div>
                             <h3 className="text-xl mb-4">Basic Information</h3>
@@ -59,9 +150,9 @@ const VerificationReviewModal = ({ application, isOpen, onClose }) => {
                                             })}
                                             className="w-full bg-gray-50 rounded-md p-3 text-left hover:bg-gray-100 flex items-center justify-between group"
                                         >
-                                            <span className="text-gray-700">View Government ID</span>
+                                            <span className="text-[#15803D]">View Government ID</span>
                                             <svg 
-                                                className="w-5 h-5 text-gray-400 group-hover:text-gray-600" 
+                                                className="w-5 h-5 text-[#7A62DC] group-hover:text-[#7A62DC]" 
                                                 fill="none" 
                                                 stroke="currentColor" 
                                                 viewBox="0 0 24 24"
@@ -85,9 +176,9 @@ const VerificationReviewModal = ({ application, isOpen, onClose }) => {
                                             })}
                                             className="w-full bg-gray-50 rounded-md p-3 text-left hover:bg-gray-100 flex items-center justify-between group"
                                         >
-                                            <span className="text-gray-700">View Proof of Residence</span>
+                                            <span className="text-[#15803D]">View Proof of Residence</span>
                                             <svg 
-                                                className="w-5 h-5 text-gray-400 group-hover:text-gray-600" 
+                                                className="w-5 h-5 text-[#7A62DC] group-hover:text-[#7A62DC]" 
                                                 fill="none" 
                                                 stroke="currentColor" 
                                                 viewBox="0 0 24 24"
@@ -148,16 +239,22 @@ const VerificationReviewModal = ({ application, isOpen, onClose }) => {
 
                     <div className="flex justify-end space-x-4 mt-8">
                         <button
-                            onClick={() => onClose(true)}
-                            className="px-6 py-2 bg-[#E2F8F5] text-[#0C8577] rounded-md"
+                            onClick={handleApprove}
+                            disabled={isLoading}
+                            className={`px-6 py-2 bg-[#E2F8F5] text-[#0C8577] rounded-md hover:bg-[#d0f1ed] ${
+                                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                         >
-                            Approve
+                            {isLoading ? 'Processing...' : 'Approve'}
                         </button>
                         <button
-                            onClick={() => onClose(false)}
-                            className="px-6 py-2 bg-[#FFE7E7] text-[#E53535] rounded-md"
+                            onClick={handleReject}
+                            disabled={isLoading}
+                            className={`px-6 py-2 bg-[#FFE7E7] text-[#E53535] rounded-md hover:bg-[#ffd4d4] ${
+                                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                         >
-                            Reject
+                            {isLoading ? 'Processing...' : 'Reject'}
                         </button>
                     </div>
                 </div>

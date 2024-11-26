@@ -35,25 +35,34 @@ const shelterSchema = new mongoose.Schema({
 
 // Main Verification Application Schema
 const verificationApplicationSchema = new mongoose.Schema({
-    type: {
-        type: String,
-        enum: ['Pet Owner', 'Animal Shelter'],
-        required: true,
-    },
-    formData: {
-        type: mongoose.Schema.Types.Mixed,
-        required: true,
+    _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        auto: true
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['Pet Owner', 'Animal Shelter'],
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default: 'Pending'
+    },
+    formData: {
+        type: mongoose.Schema.Types.Mixed,
         required: true,
     },
     submittedAt: {
         type: Date,
         default: Date.now,
     },
-});
+}, { timestamps: true });
 
 const VerificationApplication = mongoose.model('VerificationApplication', verificationApplicationSchema);
 

@@ -608,9 +608,11 @@ export const getAllUsers = async (_, res) => {
 
 export const getVerificationApplications = async (_, res) => {
     try {
-        // Add filter for Pet Owner type
-        const applications = await VerificationApplication.find({ type: 'Pet Owner' })
-            .populate('userId', 'name email profilePicture');
+        // Add filter for both Pet Owner type AND Pending status
+        const applications = await VerificationApplication.find({ 
+            type: 'Pet Owner',
+            status: 'Pending'  // Add this filter
+        }).populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
             id: app._id,
@@ -619,6 +621,7 @@ export const getVerificationApplications = async (_, res) => {
             profilePicture: app.userId.profilePicture,
             submittedDate: app.submittedAt,
             type: app.type,
+            status: app.status,
             address: app.formData.address,
             contactNumber: app.formData.contactNumber,
             occupation: app.formData.occupation,
@@ -630,6 +633,8 @@ export const getVerificationApplications = async (_, res) => {
             proofOfResidence: app.formData.proofOfResidence,
             petCareExperience: app.formData.petCareExperience
         }));
+
+        console.log('Fetched applications:', formattedApplications); // Debug log
 
         res.status(200).json({
             success: true,
@@ -647,9 +652,11 @@ export const getVerificationApplications = async (_, res) => {
 
 export const getAnimalShelterApplications = async (_, res) => {
     try {
-        // Add filter for Animal Shelter type
-        const applications = await VerificationApplication.find({ type: 'Animal Shelter' })
-            .populate('userId', 'name email profilePicture');
+        // Add filter for both Animal Shelter type AND Pending status
+        const applications = await VerificationApplication.find({ 
+            type: 'Animal Shelter',
+            status: 'Pending'  // Add this filter
+        }).populate('userId', 'name email profilePicture');
 
         const formattedApplications = applications.map(app => ({
             id: app._id,
@@ -658,6 +665,7 @@ export const getAnimalShelterApplications = async (_, res) => {
             profilePicture: app.userId.profilePicture,
             submittedDate: app.submittedAt,
             type: app.type,
+            status: app.status,  // Add status to formatted data
             organizationName: app.formData.organizationName,
             registrationNumber: app.formData.registrationNumber,
             yearEstablished: app.formData.yearEstablished,
@@ -667,6 +675,8 @@ export const getAnimalShelterApplications = async (_, res) => {
             registrationCertificate: app.formData.registrationCertificate,
             facilityPhotos: app.formData.facilityPhotos
         }));
+
+        console.log('Fetched shelter applications:', formattedApplications); // Debug log
 
         res.status(200).json({
             success: true,
@@ -678,6 +688,97 @@ export const getAnimalShelterApplications = async (_, res) => {
             success: false,
             message: "Error fetching animal shelter applications",
             error: error.message,
+        });
+    }
+};
+
+export const approveVerificationApplication = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+        
+        console.log('Approving application:', applicationId); // Debug log
+        
+        if (!applicationId) {
+            return res.status(400).json({
+                success: false,
+                message: "Application ID is required"
+            });
+        }
+
+        // Find the verification application
+        const application = await VerificationApplication.findById(applicationId);
+        
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        // Find the user
+        const user = await User.findById(application.userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Update user role based on application type
+        const newRole = application.type === 'Pet Owner' ? 'Pet Owner' : 'Animal Shelter';
+        
+        // Update user role
+        await User.findByIdAndUpdate(application.userId, {
+            role: newRole
+        });
+
+        // Update application status
+        application.status = 'Approved';
+        await application.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Application approved successfully"
+        });
+
+    } catch (error) {
+        console.error('Error approving application:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error approving application",
+            error: error.message
+        });
+    }
+};
+
+export const rejectVerificationApplication = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+        
+        // Find and delete the verification application
+        const application = await VerificationApplication.findById(applicationId);
+        
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        // Delete the application
+        await VerificationApplication.findByIdAndDelete(applicationId);
+
+        res.status(200).json({
+            success: true,
+            message: "Application rejected and deleted successfully"
+        });
+
+    } catch (error) {
+        console.error('Error rejecting application:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error rejecting application",
+            error: error.message
         });
     }
 };

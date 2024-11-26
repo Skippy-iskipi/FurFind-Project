@@ -15,6 +15,8 @@ const AdminDashboard = () => {
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
     const [isShelterModalOpen, setIsShelterModalOpen] = useState(false);
+    const [applications, setApplications] = useState([]);
+    const [statusFilter, setStatusFilter] = useState('Pending');
 
     const handleLogout = async () => {
         try {
@@ -50,6 +52,8 @@ const AdminDashboard = () => {
     const fetchPetOwnerApplications = async () => {
         try {
             const token = localStorage.getItem('token');
+            console.log('Fetching pet owner applications...'); // Debug log
+            
             const response = await fetch('http://localhost:5000/api/auth/verification-applications', {
                 method: 'GET',
                 headers: {
@@ -57,14 +61,24 @@ const AdminDashboard = () => {
                     'Content-Type': 'application/json',
                 },
             });
+            
             const data = await response.json();
-            if (data.success) {
-                setPetOwnerApplications(data.applications);
+            console.log('Received data:', data); // Debug log
+            
+            if (data.success && Array.isArray(data.applications)) { // Check if applications exists and is an array
+                // Make sure we're checking the status case-insensitively
+                const pendingApplications = data.applications.filter(app => 
+                    app && app.status && app.status.toLowerCase() === 'pending'
+                );
+                console.log('Filtered pending applications:', pendingApplications); // Debug log
+                setPetOwnerApplications(pendingApplications);
             } else {
-                console.error('Failed to fetch pet owner applications:', data.message);
+                console.error('Invalid response format:', data);
+                setPetOwnerApplications([]); // Set empty array if no valid data
             }
         } catch (error) {
             console.error('Error fetching pet owner applications:', error);
+            setPetOwnerApplications([]); // Set empty array on error
         }
     };
 
@@ -80,7 +94,8 @@ const AdminDashboard = () => {
             });
             const data = await response.json();
             if (data.success) {
-                setAnimalShelterApplications(data.applications);
+                const pendingApplications = data.applications.filter(app => app.status === 'Pending');
+                setAnimalShelterApplications(pendingApplications);
             } else {
                 console.error('Failed to fetch animal shelter applications:', data.message);
             }
@@ -100,13 +115,19 @@ const AdminDashboard = () => {
     }, [activeTab]);
 
     const filteredApplications = activeTab === 'petOwnerApplications'
-        ? petOwnerApplications.filter(application => 
-            application.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            application.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        ? (petOwnerApplications || []).filter(application => 
+            application?.status?.toLowerCase() === statusFilter.toLowerCase() && 
+            (
+                (application?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+            )
         )
-        : animalShelterApplications.filter(application =>
-            application.organizationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            application.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        : (animalShelterApplications || []).filter(application =>
+            application?.status?.toLowerCase() === statusFilter.toLowerCase() && 
+            (
+                (application?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+            )
         );
 
     const handleReviewClick = (application) => {
@@ -127,6 +148,15 @@ const AdminDashboard = () => {
         } else if (activeTab === 'animalShelterApplications') {
             fetchAnimalShelterApplications();
         }
+    };
+
+    const fetchApplications = async () => {
+        // Your fetch logic here
+    };
+
+    const handleOpenModal = (application) => {
+        console.log('Opening modal with application:', application);
+        setSelectedApplication(application);
     };
 
     return (
@@ -214,9 +244,6 @@ const AdminDashboard = () => {
                 {(activeTab === 'petOwnerApplications' || activeTab === 'animalShelterApplications') && (
                     <div>
                         <div className="mt-10 mb-5 flex justify-between items-center">
-                            <h2 className="text-xl font-semibold">
-                                {activeTab === 'petOwnerApplications' ? 'Pet Owner Applications' : 'Animal Shelter Applications'}
-                            </h2>
                             <input
                                 type="text"
                                 placeholder="Search applications..."
@@ -225,57 +252,102 @@ const AdminDashboard = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <div className="border rounded-lg p-4">
-                            {filteredApplications.map(application => (
-                                <div key={application.email} className="p-4 border-b last:border-b-0 flex items-center justify-between">
-                                    <div className="flex items-center flex-1">
-                                        <img
-                                            src={application.profilePicture || '/images/default-profile.jpg'}
-                                            alt={`${activeTab === 'petOwnerApplications' ? application.name : application.organizationName}'s profile`}
-                                            className="h-16 w-16 rounded-full object-cover mr-5"
-                                        />
-                                        <div className='font-opensans'>
-                                            <h3 className="font-semibold text-lg">
-                                                {activeTab === 'petOwnerApplications' 
-                                                    ? application.name 
-                                                    : application.organizationName}
-                                            </h3>
-                                            <p className="text-gray-600">{application.email}</p>
-                                            <p className="text-gray-500 text-sm">
-                                                Submitted: {new Date(application.submittedDate).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="bg-[#7A62DC] text-white px-4 py-1.5 rounded-full text-sm">
-                                            {activeTab === 'petOwnerApplications' ? 'Pet Owner' : 'Animal Shelter'}
-                                        </span>
-                                        <button 
-                                            className='font-medium border-2 border-[#7A62DC] py-2 px-4 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors duration-200'
-                                            onClick={() => handleReviewClick(application)}
-                                        >
-                                            Review Application
-                                        </button>
-                                    </div>
-                                </div>
+
+                        {/* Add Status Tabs */}
+                        <div className="flex space-x-8 mb-6 border-b">
+                            {['Pending', 'Approved', 'Rejected'].map((status) => (
+                                <button
+                                    key={status}
+                                    className={`relative py-2 px-1 text-base font-medium ${
+                                        statusFilter === status 
+                                            ? 'text-[#7A62DC]' 
+                                            : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                                    onClick={() => setStatusFilter(status)}
+                                >
+                                    {status}
+                                    {statusFilter === status && (
+                                        <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#7A62DC]"></span>
+                                    )}
+                                </button>
                             ))}
                         </div>
+
+                        <div className="border rounded-lg p-4">
+                            {filteredApplications.length > 0 ? (
+                                filteredApplications.map(application => (
+                                    <div key={application.id} className="p-4 border-b last:border-b-0 flex items-center justify-between">
+                                        <div className="flex items-center flex-1">
+                                            <img
+                                                src={application.profilePicture || '/images/default-profile.jpg'}
+                                                alt={`${application.name}'s profile`}
+                                                className="h-16 w-16 rounded-full object-cover mr-5"
+                                            />
+                                            <div className='font-opensans'>
+                                                <h3 className="font-semibold text-lg">
+                                                    {application.name}
+                                                </h3>
+                                                <p className="text-gray-600">{application.email}</p>
+                                                <p className="text-gray-500 text-sm">
+                                                    Submitted: {new Date(application.submittedDate).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className={`px-4 py-1.5 rounded-full text-sm ${
+                                                application.status === 'Pending' 
+                                                    ? 'bg-[#FFF4E5] text-[#FF9800]'
+                                                    : application.status === 'Approved'
+                                                    ? 'bg-[#E2F8F5] text-[#0C8577]'
+                                                    : 'bg-[#FFE7E7] text-[#E53535]'
+                                            }`}>
+                                                {application.status}
+                                            </span>
+                                            {application.status === 'Pending' && (
+                                                <button 
+                                                    className='font-medium border-2 border-[#7A62DC] py-2 px-4 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors duration-200'
+                                                    onClick={() => handleReviewClick(application)}
+                                                >
+                                                    Review Application
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    No {statusFilter.toLowerCase()} applications found
+                                </div>
+                            )}
+                        </div>
                         <div className="flex justify-end mt-6 gap-2">
-                            <button className="px-4 py-2 bg-[#7A62DC] text-white rounded-md">1</button>
-                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">2</button>
-                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">3</button>
-                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Next</button>
+                            {[1, 2, 3].map((page) => (
+                                <button
+                                    key={`page-${page}`}
+                                    className={`px-4 py-2 ${
+                                        page === 1 
+                                            ? 'bg-[#7A62DC] text-white' 
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    } rounded-md`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                                Next
+                            </button>
                         </div>
                     </div>
                 )}
             </main>
 
-            {/* Separate Modals */}
+            {/* Modals */}
             {activeTab === 'petOwnerApplications' && (
                 <VerificationReviewModal
                     isOpen={isVerificationModalOpen}
                     onClose={handleCloseModal}
                     application={selectedApplication}
+                    onActionComplete={fetchPetOwnerApplications}
                 />
             )}
 
@@ -284,6 +356,7 @@ const AdminDashboard = () => {
                     application={selectedApplication}
                     isOpen={isShelterModalOpen}
                     onClose={handleCloseModal}
+                    onActionComplete={fetchAnimalShelterApplications}
                 />
             )}
         </div>
