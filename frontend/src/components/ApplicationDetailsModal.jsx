@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DocumentViewerModal from './DocumentViewerModal';
+import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/solid';
 
 const FormSection = ({ title, children }) => (
     <div className="mb-8">
@@ -44,7 +45,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-md w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-4 border-b">
                     <div className="flex space-x-4">
                         <button
@@ -68,7 +69,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
                             Adoption Form
                         </button>
                     </div>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                    <button onClick={onClose} className="text-[#7A62DC] hover:text-[#58E6E0]">
                         <X size={24} />
                     </button>
                 </div>
@@ -81,7 +82,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
                                     <img
                                         src={pet?.image}
                                         alt={pet?.name}
-                                        className="w-full h-64 object-cover rounded-lg"
+                                        className="w-full h-64 object-cover rounded-md"
                                     />
                                 </div>
                                 <div className="w-2/3 space-y-4">
@@ -128,28 +129,36 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-6 mt-6">
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-semibold mb-4">Adopter</h3>
+                                <div className="bg-gray-50 p-4 rounded-md">
+                                    <h3 className="text-md font-semibold mb-4">Adopter</h3>
                                     <div className="space-y-2">
-                                        <p className="text-gray-600">Name: <span className="text-black">{adopter?.name}</span></p>
-                                        <p className="text-gray-600">Contact: <span className="text-black">{formData?.contactNumber}</span></p>
-                                        <p className="text-gray-600">Email: <span className="text-black">{adopter?.email}</span></p>
+                                        <p className="text-gray-600 text-md font-medium"><span className="text-[#7A62DC]">{adopter?.name}</span></p>
+                                        <p className="text-gray-600 flex items-center">
+                                            <PhoneIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" />
+                                            <span className="text-black">{formData?.contactNumber}</span>
+                                        </p>
+                                        <p className="text-gray-600 flex items-center">
+                                            <EnvelopeIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" />
+                                            <span className="text-black">{adopter?.email}</span>
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-semibold mb-4">
+                                <div className="bg-gray-50 p-4 rounded-md">
+                                    <h3 className="text-md font-semibold mb-4">
                                         {owner?.role === 'Animal Shelter' ? 'Animal Shelter' : 'Pet Owner'}
                                     </h3>
                                     <div className="space-y-2">
-                                        <p className="text-gray-600">Name: <span className="text-black">
+                                        <p className="text-gray-600 text-md font-medium"><span className="text-[#7A62DC]">
                                             {owner?.name}
                                         </span></p>
-                                        <p className="text-gray-600">Contact: <span className="text-black">
-                                            {owner?.contactNumber || 'Not available'}
-                                        </span></p>
-                                        <p className="text-gray-600">Email: <span className="text-black">
-                                            {owner?.email}
-                                        </span></p>
+                                        <p className="text-gray-600 flex items-center">
+                                            <PhoneIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" />
+                                            <span className="text-black">{owner?.contactNumber || 'Not available'}</span>
+                                        </p>
+                                        <p className="text-gray-600 flex items-center">
+                                            <EnvelopeIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" />
+                                            <span className="text-black">{owner?.email}</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -332,13 +341,13 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
                 <div className="border-t p-4 flex justify-end space-x-4">
                     <button
                         onClick={handleApprove}
-                        className="px-6 py-2 bg-[#22C55E] text-white rounded-md hover:bg-[#16A34A] transition-colors"
+                        className="px-6 py-2 border border-[#DCFCE7] text-[#16A34A] rounded-md hover:bg-[#15803D] hover:text-[#DCFCE7] transition-colors"
                     >
                         Approve
                     </button>
                     <button
                         onClick={handleReject}
-                        className="px-6 py-2 bg-[#EF4444] text-white rounded-md hover:bg-[#DC2626] transition-colors"
+                        className="px-6 py-2 border border-[#FEE2E2] text-[#B91C1C] rounded-md hover:bg-[#B91C1C] hover:text-[#FEE2E2] transition-colors"
                     >
                         Reject
                     </button>

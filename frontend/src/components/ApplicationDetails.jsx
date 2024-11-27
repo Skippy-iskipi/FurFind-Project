@@ -62,21 +62,21 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
                 {console.log('Owner data:', application.owner)}
                 <h3 className="font-semibold">{application.owner.role}</h3>
                 <p>{application.owner.name}</p>
-                <p>
-                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.contact}
+                <p className="flex items-center">
+                  <PhoneIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" /> {application.owner.contact}
                 </p>
                 <p className="truncate">
-                  <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.email}
+                  <EnvelopeIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" /> {application.owner.email}
                 </p>
             </div>
             <div className="flex flex-col gap-2 p-4 border border-gray-300 rounded-md w-full">
                 <h3 className="font-semibold">Adopter</h3>
                 <p>{application.adopter.name}</p>
-                <p>
-                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.contactNumber}
+                <p className="flex items-center">
+                  <PhoneIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" /> {application.adopter.contactNumber}
                 </p>
                 <p className="truncate">
-                  <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.adopter.email}
+                  <EnvelopeIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" /> {application.adopter.email}
                 </p>
             </div>
           </div>
