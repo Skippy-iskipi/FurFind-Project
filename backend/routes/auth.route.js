@@ -21,7 +21,10 @@ import {
 	getVerificationApplications,
 	getAnimalShelterApplications,
 	approveVerificationApplication,
-	rejectVerificationApplication
+	rejectVerificationApplication,
+	getAdoptionRequests,
+	getApplicationById,
+	getUserAdoptionApplications
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -72,5 +75,11 @@ router.get('/animal-shelter-applications', authenticate, getAnimalShelterApplica
 
 router.post('/verification-applications/:applicationId/approve', authenticate, approveVerificationApplication);
 router.post('/verification-applications/:applicationId/reject', authenticate, rejectVerificationApplication);
+
+router.get('/adoption-requests', verifyToken, getAdoptionRequests);
+
+router.get('/application/:applicationId', verifyToken, getApplicationById);
+
+router.get('/user-adoption-applications/:applicationId', verifyToken, getUserAdoptionApplications);
 
 export default router;

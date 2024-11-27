@@ -8,7 +8,7 @@ import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import Pet from "../models/pet.model.js";
 import { AdoptionApplication } from '../models/adoptionApplication.model.js';
-import { authenticate } from '../middleware/auth.middleware.js';
+
 
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
@@ -780,4 +780,196 @@ export const rejectVerificationApplication = async (req, res) => {
         });
     }
 };
+
+export const getAdoptionRequests = async (req, res) => {
+    try {
+        console.log('User ID:', req.userId);
+        const userId = req.userId;
+
+        // Find all pets owned by this user
+        const userPets = await Pet.find({ userId });
+        const petIds = userPets.map(pet => pet._id);
+
+        // Find all adoption applications for these pets
+        const applications = await AdoptionApplication.find({
+            petId: { $in: petIds }
+        })
+        .populate({
+            path: 'userId',
+            select: 'name'
+        })
+        .populate({
+            path: 'petId',
+            select: 'name image'
+        })
+        .select('createdAt status');
+
+        if (!applications.length) {
+            return res.status(200).json({
+                success: true,
+                message: "No adoption requests yet",
+                applications: []
+            });
+        }
+
+        const response = applications.map(app => ({
+            id: app._id,
+            petName: app.petId.name,
+            petImage: app.petId.image,
+            adopterName: app.userId.name,
+            dateApplied: app.createdAt,
+            status: app.status
+        }));
+
+        res.status(200).json({
+            success: true,
+            applications: response
+        });
+    } catch (error) {
+        console.error('Error fetching adoption requests:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching adoption requests",
+            error: error.message
+        });
+    }
+};
+
+export const getApplicationById = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+        
+        // Find the application with all necessary data
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate({
+                path: 'petId',
+                select: 'name image classification breed gender age location userId',
+                populate: {
+                    path: 'userId',
+                    select: 'name email role'
+                }
+            })
+            .populate('userId', 'name email');
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        // Get pet owner's verification details
+        const ownerVerification = await VerificationApplication.findOne({
+            userId: application.petId.userId._id,
+            status: 'Approved'
+        }).select('contactNumber');
+
+        // Get adopter's contact from the adoption application
+        const adopterContact = application.contactNumber;
+
+        // Format the response
+        const response = {
+            success: true,
+            application: {
+                status: application.status,
+                // Pet details
+                pet: {
+                    name: application.petId.name,
+                    image: application.petId.image,
+                    classification: application.petId.classification,
+                    breed: application.petId.breed,
+                    gender: application.petId.gender,
+                    age: application.petId.age,
+                    location: application.petId.location,
+                },
+                // Pet owner/shelter details
+                owner: {
+                    name: application.petId.userId.name,
+                    contactNumber: ownerVerification?.contactNumber || 'Not available',
+                    email: application.petId.userId.email,
+                    role: application.petId.userId.role
+                },
+                // Adopter details
+                adopter: {
+                    name: application.userId.name,
+                    contactNumber: adopterContact,
+                    email: application.userId.email
+                },
+                // Application content
+                applicationContent: application.applicationContent
+            }
+        };
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error('Error fetching application details:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching application details",
+            error: error.message
+        });
+    }
+};
+
+export const getUserAdoptionApplications = async (req, res) => {
+    try {
+        const applicationId = req.params.applicationId;
+
+        // Fetch specific adoption application with populated fields
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate('petId', 'name image classification breed gender age location')
+            .populate('userId', 'name email contactNumber')
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        // Format the response to match the expected structure
+        const response = {
+            success: true,
+            applications: [{
+                id: application._id,
+                userId: application.userId._id,
+                petId: application.petId._id,
+                formData: {
+                    address: application.address || "N/A",
+                    contactNumber: application.contactNumber || "N/A",
+                    occupation: application.occupation || "N/A",
+                    emergencyFirstName: application.emergencyFirstName || "N/A",
+                    emergencyLastName: application.emergencyLastName || "N/A",
+                    emergencyAddress: application.emergencyAddress || "N/A",
+                    emergencyContact: application.emergencyContact || "N/A",
+                    typeOfResidence: application.typeOfResidence || "N/A",
+                    residenceOwnership: application.residenceOwnership || "N/A",
+                    hadPetsBefore: application.hadPetsBefore || "N/A",
+                    hasCurrentPets: application.hasCurrentPets || "N/A",
+                    petCareDescription: application.petCareDescription || "N/A",
+                    governmentId: application.governmentId || "N/A",
+                    proofOfResidence: application.proofOfResidence || "N/A",
+                    proofOfIncome: application.proofOfIncome || "N/A"
+                },
+                pet: application.petId,
+                adopter: application.userId,
+                status: application.status,
+                createdAt: application.createdAt
+            }]
+        };
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error('Error fetching application form data:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching application form data",
+            error: error.message
+        });
+    }
+};
+
+
 
