@@ -7,6 +7,7 @@ import { Bell, Filter, Menu, Search, ChevronUp, ChevronDown } from 'lucide-react
 import { formatTimeAgo } from '../utils/dateUtils';
 import PetDetailsModal from '../components/PetDetailsModal';
 import MyApplications from '../components/MyApplications';
+import AdoptionRequest from '../components/AdoptionRequest';
 
 
 const DashboardPage = () => {
@@ -474,9 +475,7 @@ const DashboardPage = () => {
 							{activeTab === 'Adoption History' && (
 								<div className='col-span-full text-center text-gray-500'>No Adoption History at the moment.</div>
 							)}
-							{activeTab === 'Adoption Request' && (
-								<div className='col-span-full text-center text-gray-500'>No Adoption Requests at the moment.</div>
-							)}
+							{activeTab === 'Adoption Request' && <AdoptionRequest userRole={user.role} />}
 						</div>
 					</div>
 				</div>
