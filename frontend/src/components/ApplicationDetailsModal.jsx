@@ -137,11 +137,19 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
                                     </div>
                                 </div>
                                 <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-lg font-semibold mb-4">Owner</h3>
+                                    <h3 className="text-lg font-semibold mb-4">
+                                        {owner?.role === 'Animal Shelter' ? 'Animal Shelter' : 'Pet Owner'}
+                                    </h3>
                                     <div className="space-y-2">
-                                        <p className="text-gray-600">Name: <span className="text-black">{owner?.name}</span></p>
-                                        <p className="text-gray-600">Contact: <span className="text-black">{owner?.contactNumber}</span></p>
-                                        <p className="text-gray-600">Email: <span className="text-black">{owner?.email}</span></p>
+                                        <p className="text-gray-600">Name: <span className="text-black">
+                                            {owner?.name}
+                                        </span></p>
+                                        <p className="text-gray-600">Contact: <span className="text-black">
+                                            {owner?.contactNumber || 'Not available'}
+                                        </span></p>
+                                        <p className="text-gray-600">Email: <span className="text-black">
+                                            {owner?.email}
+                                        </span></p>
                                     </div>
                                 </div>
                             </div>

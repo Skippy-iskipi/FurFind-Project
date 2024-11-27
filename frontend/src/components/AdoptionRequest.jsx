@@ -9,6 +9,7 @@ const AdoptionRequest = ({ userRole }) => {
     const [loading, setLoading] = useState(true);
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('All');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -98,6 +99,13 @@ const AdoptionRequest = ({ userRole }) => {
         fetchUserAdoptionApplications(applicationId);
     };
 
+    const getFilteredApplications = () => {
+        if (activeTab === 'All') return applications;
+        return applications.filter(app => app.status === activeTab);
+    };
+
+    const filteredApplications = getFilteredApplications();
+
     if (userRole === 'Adopter') {
         return (
             <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
@@ -126,15 +134,34 @@ const AdoptionRequest = ({ userRole }) => {
     return (
         <>
             <div className="space-y-4">
-                <h2 className="text-2xl font-semibold mb-6 font-lora">Adoption Requests</h2>
-                
-                {applications.length === 0 ? (
-                    <div className="text-center py-8 bg-white rounded-lg shadow">
-                        <p className="text-gray-500">No adoption requests at the moment.</p>
+                <div className="flex space-x-8 mb-4 border-b px-10">
+                    {['All', 'Approved', 'Pending', 'Rejected'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`pb-2 px-1 transition-colors relative ${
+                                activeTab === tab
+                                    ? 'text-[#7A62DC] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#7A62DC]'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+
+                {applications.length === 0 || filteredApplications.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-gray-500 text-sm">
+                            {applications.length === 0
+                                ? "No adoption applications yet."
+                                : `No ${activeTab.toLowerCase()} applications yet.`
+                            }
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {applications.map((application) => (
+                        {filteredApplications.map((application) => (
                             <div
                                 key={application.id}
                                 className="p-4 border rounded-md bg-gray-100"

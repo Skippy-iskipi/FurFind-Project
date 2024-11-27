@@ -59,10 +59,11 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
           </div>
           <div className="grid grid-cols-1 gap-6">
             <div className="flex flex-col gap-2 p-4 border border-gray-300 rounded-md w-full">
-                <h3 className="font-semibold">Pet Owner</h3>
+                {console.log('Owner data:', application.owner)}
+                <h3 className="font-semibold">{application.owner.role}</h3>
                 <p>{application.owner.name}</p>
                 <p>
-                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.contactNumber}
+                  <PhoneIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.contact}
                 </p>
                 <p className="truncate">
                   <EnvelopeIcon className="h-5 w-5 text-gray-400 inline" /> {application.owner.email}

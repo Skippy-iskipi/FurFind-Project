@@ -538,55 +538,91 @@ export const getAdoptionApplicationDetails = async (req, res) => {
 };
 
 export const getApplicationDetails = async (req, res) => {
-  try {
-    const { applicationId } = req.params;
-
-    const application = await AdoptionApplication.findById(applicationId)
-      .populate({
-        path: 'petId',
-        select: 'name image classification breed gender age location userId',
-        populate: {
+    try {
+      const { applicationId } = req.params;
+  
+      const application = await AdoptionApplication.findById(applicationId)
+        .populate({
+          path: 'petId',
+          select: 'name image classification breed gender age location userId',
+          populate: {
+            path: 'userId',
+            select: 'role name contactNumber shelterContact email',
+          },
+        })
+        .populate({
           path: 'userId',
-          select: 'name contactNumber email',
-        },
-      })
-      .populate({
-        path: 'userId',
-        select: 'role name email',
-      });
+          select: 'role name email contactNumber',
+        });
 
-    if (!application) {
-      return res.status(404).json({
+      if (!application) {
+        return res.status(404).json({
+          success: false,
+          message: 'Application not found',
+        });
+      }
+
+      let ownerContact;
+      let owner;
+      
+      console.log('Looking for verification with userId:', application.petId.userId._id);
+      
+      const verificationApp = await VerificationApplication.findOne({
+        userId: application.petId.userId._id
+      });
+      
+      console.log('Raw Verification App:', verificationApp);
+      console.log('User role:', application.petId.userId.role);
+
+      if (!verificationApp) {
+        console.log('No verification application found for this user');
+      }
+
+      if (application.petId.userId.role === 'Animal Shelter') {
+        ownerContact = verificationApp?.formData?.shelterContact;
+        owner = {
+          name: application.petId.userId.name,
+          organizationName: verificationApp?.formData?.organizationName,
+          email: application.petId.userId.email,
+          contact: ownerContact,
+          role: application.petId.userId.role
+        };
+      } else if (application.petId.userId.role === 'Pet Owner') {
+        ownerContact = verificationApp?.formData?.contact || verificationApp?.formData?.contactNumber;
+        owner = {
+          name: application.petId.userId.name,
+          email: application.petId.userId.email,
+          contact: ownerContact,
+          role: application.petId.userId.role
+        };
+      }
+
+      console.log('Final owner data:', owner);
+
+      const adopter = {
+        name: application.userId.name,
+        email: application.userId.email,
+        contactNumber: application.contactNumber,
+      };
+  
+      res.status(200).json({
+        success: true,
+        application: {
+          pet: application.petId,
+          status: application.status,
+          adopter,
+          owner,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching application details:', error);
+      res.status(500).json({
         success: false,
-        message: 'Application not found',
+        message: 'Error fetching application details',
+        error: error.message,
       });
     }
-
-    const adopter = {
-      name: application.userId.name,
-      email: application.userId.email,
-      contactNumber: application.contactNumber,
-    };
-    const owner = application.petId.userId;
-
-    res.status(200).json({
-      success: true,
-      application: {
-        pet: application.petId,
-        status: application.status,
-        adopter,
-        owner,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching application details:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching application details',
-      error: error.message,
-    });
-  }
-};
+  };
 
 export const getAllUsers = async (_, res) => {
     try {
@@ -862,7 +898,23 @@ export const getApplicationById = async (req, res) => {
         const ownerVerification = await VerificationApplication.findOne({
             userId: application.petId.userId._id,
             status: 'Approved'
-        }).select('contactNumber');
+        }).select('formData');
+
+        console.log('Owner Verification:', ownerVerification); // Debug log
+
+        // Determine the correct contact and name based on the owner's role
+        let ownerContact = 'Not available';
+        let ownerName = application.petId.userId.name;
+
+        if (application.petId.userId.role === 'Pet Owner' && ownerVerification) {
+            ownerContact = ownerVerification.formData.contactNumber || 'Not available';
+        } else if (application.petId.userId.role === 'Animal Shelter' && ownerVerification) {
+            ownerContact = ownerVerification.formData.shelterContact || 'Not available';
+            ownerName = ownerVerification.formData.organizationName || ownerName;
+        }
+
+        console.log('Owner Contact:', ownerContact); // Debug log
+        console.log('Owner Name:', ownerName); // Debug log
 
         // Get adopter's contact from the adoption application
         const adopterContact = application.contactNumber;
@@ -884,8 +936,8 @@ export const getApplicationById = async (req, res) => {
                 },
                 // Pet owner/shelter details
                 owner: {
-                    name: application.petId.userId.name,
-                    contactNumber: ownerVerification?.contactNumber || 'Not available',
+                    name: ownerName,
+                    contactNumber: ownerContact,
                     email: application.petId.userId.email,
                     role: application.petId.userId.role
                 },
