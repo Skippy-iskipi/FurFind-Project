@@ -13,9 +13,10 @@ const FormSection = ({ title, children }) => (
     </div>
 );
 
-const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
+const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplete }) => {
     const [activeTab, setActiveTab] = useState('Application Details');
     const [viewingDocument, setViewingDocument] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen || !application) return null;
     
@@ -23,23 +24,99 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application }) => {
 
     const handleApprove = async () => {
         try {
-            // Add your approve logic here
-            toast.success('Application approved successfully');
-            onClose();
+            if (!application) {
+                console.error('Application data is missing');
+                throw new Error('Application data is missing');
+            }
+
+            const applicationId = application._id || application.id;
+            if (!applicationId) {
+                console.error('Application ID is missing:', application);
+                throw new Error('Application ID is missing');
+            }
+
+            setIsLoading(true);
+            
+            const response = await fetch(`http://localhost:5000/api/auth/adoption-requests/${applicationId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Session expired. Please log in again.');
+                }
+                throw new Error(data.message || `Server responded with status: ${response.status}`);
+            }
+
+            if (data.success) {
+                toast.success('Application approved successfully');
+                onClose();
+                if (onActionComplete) onActionComplete();
+            } else {
+                throw new Error(data.message || 'Failed to approve application');
+            }
         } catch (error) {
             console.error('Error approving application:', error);
-            toast.error('Failed to approve application');
+            toast.error(error.message || 'Error approving application');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleReject = async () => {
+        if (!window.confirm('Are you sure you want to reject this application? This action cannot be undone.')) {
+            return;
+        }
+
         try {
-            // Add your reject logic here
-            toast.success('Application rejected successfully');
-            onClose();
+            if (!application) {
+                console.error('Application data is missing');
+                throw new Error('Application data is missing');
+            }
+
+            const applicationId = application._id || application.id;
+            if (!applicationId) {
+                console.error('Application ID is missing:', application);
+                throw new Error('Application ID is missing');
+            }
+
+            setIsLoading(true);
+            
+            const response = await fetch(`http://localhost:5000/api/auth/adoption-requests/${applicationId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Session expired. Please log in again.');
+                }
+                throw new Error(data.message || `Server responded with status: ${response.status}`);
+            }
+
+            if (data.success) {
+                toast.success('Application rejected successfully');
+                onClose();
+                if (onActionComplete) onActionComplete();
+            } else {
+                throw new Error(data.message || 'Failed to reject application');
+            }
         } catch (error) {
             console.error('Error rejecting application:', error);
-            toast.error('Failed to reject application');
+            toast.error(error.message || 'Error rejecting application');
+        } finally {
+            setIsLoading(false);
         }
     };
 

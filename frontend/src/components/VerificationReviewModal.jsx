@@ -16,8 +16,6 @@ const VerificationReviewModal = ({ application, isOpen, onClose, onActionComplet
             if (!applicationId) {
                 throw new Error('Application ID is missing');
             }
-
-            console.log('Approving application:', applicationId); // Debug log
             
             const response = await fetch(`http://localhost:5000/api/auth/verification-applications/${applicationId}/approve`, {
                 method: 'POST',
@@ -63,8 +61,6 @@ const VerificationReviewModal = ({ application, isOpen, onClose, onActionComplet
             if (!applicationId) {
                 throw new Error('Application ID is missing');
             }
-
-            console.log('Rejecting application:', applicationId); // Debug log
             
             const response = await fetch(`http://localhost:5000/api/auth/verification-applications/${applicationId}/reject`, {
                 method: 'POST',
