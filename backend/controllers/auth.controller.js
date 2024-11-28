@@ -885,6 +885,7 @@ export const getApplicationById = async (req, res) => {
                     select: 'name email role'
                 }
             })
+            .select('status completedAt contactNumber userId')
             .populate('userId', 'name email');
 
         if (!application) {
@@ -900,26 +901,13 @@ export const getApplicationById = async (req, res) => {
             status: 'Approved'
         }).select('formData');
 
-        // Determine the correct contact and name based on the owner's role
-        let ownerContact = 'Not available';
-        let ownerName = application.petId.userId.name;
-
-        if (application.petId.userId.role === 'Pet Owner' && ownerVerification) {
-            ownerContact = ownerVerification.formData.contactNumber || 'Not available';
-        } else if (application.petId.userId.role === 'Animal Shelter' && ownerVerification) {
-            ownerContact = ownerVerification.formData.shelterContact || 'Not available';
-            ownerName = ownerVerification.formData.organizationName || ownerName;
-        }
-
-        // Get adopter's contact from the adoption application
-        const adopterContact = application.contactNumber;
-
         // Format the response
         const response = {
             success: true,
             application: {
                 _id: application._id,
                 status: application.status,
+                completedAt: application.completedAt,
                 pet: {
                     name: application.petId.name,
                     image: application.petId.image,
@@ -930,17 +918,16 @@ export const getApplicationById = async (req, res) => {
                     location: application.petId.location,
                 },
                 owner: {
-                    name: ownerName,
-                    contactNumber: ownerContact,
+                    name: application.petId.userId.name,
                     email: application.petId.userId.email,
-                    role: application.petId.userId.role
+                    role: application.petId.userId.role,
+                    contactNumber: ownerVerification?.formData?.contactNumber || 'Not available'
                 },
                 adopter: {
                     name: application.userId.name,
-                    contactNumber: adopterContact,
-                    email: application.userId.email
-                },
-                applicationContent: application.applicationContent
+                    email: application.userId.email,
+                    contactNumber: application.contactNumber
+                }
             }
         };
 
@@ -1084,4 +1071,42 @@ export const rejectAdoptionRequest = async (req, res) => {
     }
 };
 
+export const completeAdoptionRequest = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
 
+        const application = await AdoptionApplication.findById(applicationId);
+        
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Adoption application not found"
+            });
+        }
+
+        if (application.status !== 'Approved') {
+            return res.status(400).json({
+                success: false,
+                message: "Only approved applications can be marked as completed"
+            });
+        }
+
+        // Update the status to Completed and set completedAt
+        application.status = 'Completed';
+        application.completedAt = new Date();  // Add completion timestamp
+        await application.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Adoption process marked as completed"
+        });
+
+    } catch (error) {
+        console.error('Error completing adoption request:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error completing adoption request",
+            error: error.message
+        });
+    }
+};

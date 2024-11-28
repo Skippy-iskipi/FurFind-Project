@@ -135,7 +135,7 @@ const AdoptionRequest = ({ userRole }) => {
         <>
             <div className="space-y-4">
                 <div className="flex space-x-8 mb-4 border-b px-10">
-                    {['All', 'Approved', 'Pending', 'Rejected'].map((tab) => (
+                    {['All', 'Approved', 'Pending', 'Rejected', 'Completed'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -191,6 +191,8 @@ const AdoptionRequest = ({ userRole }) => {
                                                 ? 'bg-[#FEF9C3] text-[#A16207]'
                                                 : application.status === 'Approved'
                                                 ? 'bg-[#CFFAFE] text-[#0E7490]'
+                                                : application.status === 'Completed'
+                                                ? 'bg-[#DCFCE7] text-[#15803D]'
                                                 : 'bg-[#FEE2E2] text-[#B91C1C]'
                                         }`}>
                                             {application.status}

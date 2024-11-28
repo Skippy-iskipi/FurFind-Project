@@ -18,9 +18,10 @@ const MyApplications = () => {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
-        console.log(response.data.applications);
-        setApplications(response.data.applications || []);
-        setFilteredApplications(response.data.applications || []);
+        const activeApplications = (response.data.applications || [])
+          .filter(app => app.status !== 'Completed');
+        setApplications(activeApplications);
+        setFilteredApplications(activeApplications);
       } catch (err) {
         setError(err.response ? err.response.data.message : 'Error fetching data');
       } finally {

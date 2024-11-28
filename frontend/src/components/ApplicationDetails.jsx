@@ -49,7 +49,17 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
         />
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 border border-gray-300 rounded-md">
-            <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Status:</strong> <span className="bg-[#FEF9C3] text-[#A16207] px-2 py-1 rounded-md">{application.status}</span></p>
+            <p className="mb-3 font-openSans">
+                <strong className="font-semibold mr-2">Status:</strong> 
+                <span className={`px-2 py-1 rounded-md ${
+                    application.status === 'Pending' ? 'bg-[#FEF9C3] text-[#A16207]' : 
+                    application.status === 'Approved' ? 'bg-[#CFFAFE] text-[#0E7490]' :
+                    application.status === 'Rejected' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
+                    'bg-gray-100 text-gray-600'
+                }`}>
+                    {application.status}
+                </span>
+            </p>
             <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Name:</strong> {application.pet.name}</p>
             <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Classification:</strong> {application.pet.classification}</p>
             <p className="mb-3 font-openSans"><strong className="font-semibold mr-2">Breed:</strong> {application.pet.breed}</p>

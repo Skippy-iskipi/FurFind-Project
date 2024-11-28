@@ -20,7 +20,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
 
     if (!isOpen || !application) return null;
     
-    const { status, pet, owner, adopter, formData } = application;
+    const { status, pet, owner, adopter, formData, completedAt } = application;
 
     const handleApprove = async () => {
         try {
@@ -120,6 +120,56 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
         }
     };
 
+    const handleComplete = async () => {
+        try {
+            if (!application) {
+                console.error('Application data is missing');
+                throw new Error('Application data is missing');
+            }
+
+            const applicationId = application._id || application.id;
+            if (!applicationId) {
+                console.error('Application ID is missing:', application);
+                throw new Error('Application ID is missing');
+            }
+
+            setIsLoading(true);
+            
+            const response = await fetch(`http://localhost:5000/api/auth/adoption-requests/${applicationId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include' // For cookie-based auth
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Session expired. Please log in again.');
+                }
+                throw new Error(data.message || `Server responded with status: ${response.status}`);
+            }
+
+            if (data.success) {
+                toast.success('Adoption process marked as completed');
+                onClose();
+                if (onActionComplete) onActionComplete();
+            } else {
+                throw new Error(data.message || 'Failed to complete adoption process');
+            }
+        } catch (error) {
+            console.error('Error completing adoption process:', error);
+            toast.error(error.message || 'Error completing adoption process');
+            if (error.message.includes('log in again')) {
+                window.location.href = '/login';
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-md w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -164,12 +214,25 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                 </div>
                                 <div className="w-2/3 space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-2xl font-semibold">Application Status</h2>
+                                        <div className="flex items-center space-x-4">
+                                            <h2 className="text-2xl font-semibold">Application Status</h2>
+                                            {status === 'Completed' && completedAt && (
+                                                <p className="text-sm font-medium text-[#15803D]">
+                                                    • Completed on {new Date(completedAt).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })}
+                                                </p>
+                                            )}
+                                        </div>
                                         <span className={`px-3 py-1 rounded-md text-sm ${
                                             status === 'Pending'
                                                 ? 'bg-[#FEF9C3] text-[#A16207]'
                                                 : status === 'Approved'
                                                 ? 'bg-[#CFFAFE] text-[#0E7490]'
+                                                : status === 'Completed'
+                                                ? 'bg-[#DCFCE7] text-[#15803D]'
                                                 : 'bg-[#FEE2E2] text-[#B91C1C]'
                                         }`}>
                                             {status}
@@ -416,18 +479,40 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                 </div>
 
                 <div className="border-t p-4 flex justify-end space-x-4">
-                    <button
-                        onClick={handleApprove}
-                        className="px-6 py-2 border border-[#DCFCE7] text-[#16A34A] rounded-md hover:bg-[#15803D] hover:text-[#DCFCE7] transition-colors"
-                    >
-                        Approve
-                    </button>
-                    <button
-                        onClick={handleReject}
-                        className="px-6 py-2 border border-[#FEE2E2] text-[#B91C1C] rounded-md hover:bg-[#B91C1C] hover:text-[#FEE2E2] transition-colors"
-                    >
-                        Reject
-                    </button>
+                    {application.status === 'Approved' ? (
+                        <button
+                            onClick={handleComplete}
+                            disabled={isLoading}
+                            className="px-6 py-2 border border-[#DCFCE7] bg-white text-[#16A34A] rounded-md hover:bg-[#15803D] hover:text-[#DCFCE7] transition-colors"
+                        >
+                            {isLoading ? 'Processing...' : 'Complete Adoption'}
+                        </button>
+                    ) : application.status !== 'Completed' && (
+                        <>
+                            <button
+                                onClick={handleApprove}
+                                disabled={application.status === 'Rejected' || isLoading}
+                                className={`px-6 py-2 border border-[#DCFCE7] text-[#16A34A] rounded-md ${
+                                    application.status === 'Rejected' || isLoading
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:bg-[#15803D] hover:text-[#DCFCE7] transition-colors'
+                                }`}
+                            >
+                                {isLoading ? 'Processing...' : 'Approve'}
+                            </button>
+                            <button
+                                onClick={handleReject}
+                                disabled={application.status === 'Rejected' || isLoading}
+                                className={`px-6 py-2 border border-[#FEE2E2] text-[#B91C1C] rounded-md ${
+                                    application.status === 'Rejected' || isLoading
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'hover:bg-[#B91C1C] hover:text-[#FEE2E2] transition-colors'
+                                }`}
+                            >
+                                {isLoading ? 'Processing...' : 'Reject'}
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
