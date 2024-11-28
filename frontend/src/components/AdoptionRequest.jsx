@@ -108,7 +108,7 @@ const AdoptionRequest = ({ userRole }) => {
 
     if (userRole === 'Adopter') {
         return (
-            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
+            <div className="flex flex-col items-center justify-center p-8 bg-[#D4F5F5] rounded-lg shadow">
                 <h2 className="text-2xl font-semibold mb-4 font-lora">Verification Required</h2>
                 <p className="text-gray-600 mb-6 text-center">
                     You need to be verified as a Pet Owner or Animal Shelter to access adoption requests.

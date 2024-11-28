@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import EditProfile from './EditProfile';
 import MyPosts from './MyPosts';
 import AdoptedPets from '../components/AdoptedPets';
+import RatingsFeedback from '../components/RatingsFeedback';
 
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('Posts');
@@ -15,6 +16,7 @@ const MyProfilePage = () => {
     bio: '',
     profilePicture: '',
     coverPhoto: '',
+    role: '',
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -49,6 +51,7 @@ const MyProfilePage = () => {
             bio: data.user.bio,
             profilePicture: data.user.profilePicture,
             coverPhoto: data.user.coverPhoto,
+            role: data.user.role,
           });
         } else {
           console.error('Failed to fetch profile data:', data.message);
@@ -68,7 +71,7 @@ const MyProfilePage = () => {
       case 'Adopted Pets':
         return <AdoptedPets />;
       case 'Ratings & Feedback':
-        return <div>Your ratings and feedback will appear here.</div>;
+        return <RatingsFeedback userRole={profileData.role} />;
       case 'Edit Profile':
         return <EditProfile />;
       default:

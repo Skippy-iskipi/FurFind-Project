@@ -1281,9 +1281,14 @@ export const submitRating = async (req, res) => {
 
 export const getRatings = async (req, res) => {
     try {
-        const ratings = await Rating.find()
+        const userId = req.userId;
+
+        // Fetch ratings where the user is the owner
+        const ratings = await Rating.find({ ownerId: userId })
             .populate('adopterId', 'name profilePicture')
-            .populate('ownerId', 'name role');
+            .populate('ownerId', 'name role')
+            .sort({ createdAt: -1 });
+            
 
         res.status(200).json({ success: true, ratings });
     } catch (error) {

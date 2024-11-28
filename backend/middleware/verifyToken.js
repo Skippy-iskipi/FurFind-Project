@@ -10,7 +10,8 @@ export const verifyToken = (req, res, next) => {
 
 		req.userId = decoded.userId;
 		req.user = decoded;
-
+		req.userRole = decoded.role;
+		
 		next();
 	} catch (error) {
 		console.log("Error in verifyToken ", error);
