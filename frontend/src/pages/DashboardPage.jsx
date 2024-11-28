@@ -8,6 +8,7 @@ import { formatTimeAgo } from '../utils/dateUtils';
 import PetDetailsModal from '../components/PetDetailsModal';
 import MyApplications from '../components/MyApplications';
 import AdoptionRequest from '../components/AdoptionRequest';
+import AdoptionHistory from '../components/AdoptionHistory';
 
 
 const DashboardPage = () => {
@@ -482,9 +483,7 @@ const DashboardPage = () => {
 								</div>
 							)}
 							{activeTab === 'My Applications' && <MyApplications />}
-							{activeTab === 'Adoption History' && (
-								<div className='col-span-full text-center text-gray-500'>No Adoption History at the moment.</div>
-							)}
+							{activeTab === 'Adoption History' && <AdoptionHistory />}
 							{activeTab === 'Adoption Request' && <AdoptionRequest userRole={user.role} />}
 						</div>
 					</div>

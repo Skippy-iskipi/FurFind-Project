@@ -1211,3 +1211,40 @@ export const completeAdoptionRequest = async (req, res) => {
         });
     }
 };
+
+export const getCompletedAdoptionApplications = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const completedApplications = await AdoptionApplication.find({ userId, status: 'Completed' })
+            .populate('petId', 'name image')
+            .select('createdAt status');
+
+        if (!completedApplications.length) {
+            return res.status(200).json({
+                success: true,
+                message: "No completed adoption applications found",
+                applications: []
+            });
+        }
+
+        const response = completedApplications.map(app => ({
+            id: app._id,
+            petName: app.petId.name,
+            petImage: app.petId.image,
+            dateApplied: app.createdAt,
+            status: app.status
+        }));
+
+        res.status(200).json({
+            success: true,
+            applications: response
+        });
+    } catch (error) {
+        console.error('Error fetching completed adoption applications:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching completed adoption applications",
+            error: error.message
+        });
+    }
+};
