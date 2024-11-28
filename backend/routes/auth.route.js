@@ -27,7 +27,9 @@ import {
 	getUserAdoptionApplications,
 	approveAdoptionRequest,
 	rejectAdoptionRequest,
-	completeAdoptionRequest
+	completeAdoptionRequest,
+	getAdoptedPets,
+	getPetApplication
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -89,5 +91,9 @@ router.post('/adoption-requests/:applicationId/approve', verifyToken, approveAdo
 router.post('/adoption-requests/:applicationId/reject', verifyToken, rejectAdoptionRequest);
 
 router.post('/adoption-requests/:applicationId/complete', verifyToken, completeAdoptionRequest);
+
+router.get('/adopted-pets', verifyToken, getAdoptedPets);
+
+router.get('/pet-application/:petId', verifyToken, getPetApplication);
 
 export default router;

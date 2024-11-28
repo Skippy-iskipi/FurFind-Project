@@ -244,7 +244,7 @@ export const getAllPets = async (req, res) => {
     try {
         const { classification, age, gender, breed, location } = req.query;
         
-        const filter = {};
+        const filter = { status: 'Available' };
         
         if (classification && classification !== 'All') {
             filter.classification = classification;
@@ -468,7 +468,10 @@ export const getUserPets = async (req, res) => {
     try {
         const userId = req.userId;
 
-        const pets = await Pet.find({ userId })
+        const pets = await Pet.find({
+            userId,
+            status: 'Available'
+        })
             .populate({
                 path: 'userId',
                 select: 'name profilePicture'
@@ -490,6 +493,86 @@ export const getUserPets = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Error fetching user pets",
+            error: error.message
+        });
+    }
+};
+
+export const getAdoptedPets = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        const pets = await Pet.find({ 
+            userId,
+            status: 'Adopted'
+        })
+            .populate({
+                path: 'userId',
+                select: 'name profilePicture'
+            })
+            .sort({ createdAt: -1 });
+
+        if (!pets.length) {
+            return res.status(404).json({
+                success: false,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            pets
+        });
+    } catch (error) {
+        console.error('Error fetching adopted pets:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching adopted pets",
+            error: error.message
+        });
+    }
+};
+
+export const getPetApplication = async (req, res) => {
+    try {
+        const { petId } = req.params;
+
+        // Find the completed application for this pet
+        const application = await AdoptionApplication.findOne({ 
+            petId,
+            status: 'Completed'
+        })
+        .populate('petId') // Populate pet details
+        .populate('userId', 'name email phoneNumber') // Populate adopter details
+        .populate('ownerId', 'name email phoneNumber role'); // Populate owner details
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        // Restructure the data to match the expected format
+        const formattedApplication = {
+            _id: application._id,
+            status: application.status,
+            completedAt: application.completedAt,
+            pet: application.petId,
+            adopter: application.userId,
+            owner: application.ownerId,
+            formData: application.formData // This should include all the form fields
+        };
+
+        res.status(200).json({
+            success: true,
+            application: formattedApplication
+        });
+
+    } catch (error) {
+        console.error('Error fetching pet application:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching pet application",
             error: error.message
         });
     }
@@ -899,7 +982,20 @@ export const getApplicationById = async (req, res) => {
         const ownerVerification = await VerificationApplication.findOne({
             userId: application.petId.userId._id,
             status: 'Approved'
-        }).select('formData');
+        }).select('formData type');
+
+        // Determine contact number based on owner type
+        let ownerContact = 'Not available';
+        let ownerName = application.petId.userId.name;
+        
+        if (ownerVerification) {
+            if (application.petId.userId.role === 'Animal Shelter') {
+                ownerContact = ownerVerification.formData.shelterContact;
+                ownerName = ownerVerification.formData.organizationName || ownerName;
+            } else {
+                ownerContact = ownerVerification.formData.contactNumber;
+            }
+        }
 
         // Format the response
         const response = {
@@ -918,10 +1014,12 @@ export const getApplicationById = async (req, res) => {
                     location: application.petId.location,
                 },
                 owner: {
-                    name: application.petId.userId.name,
+                    name: ownerName,
                     email: application.petId.userId.email,
                     role: application.petId.userId.role,
-                    contactNumber: ownerVerification?.formData?.contactNumber || 'Not available'
+                    contactNumber: ownerContact,
+                    organizationName: application.petId.userId.role === 'Animal Shelter' ? 
+                        ownerVerification?.formData?.organizationName : undefined
                 },
                 adopter: {
                     name: application.userId.name,
@@ -1093,8 +1191,11 @@ export const completeAdoptionRequest = async (req, res) => {
 
         // Update the status to Completed and set completedAt
         application.status = 'Completed';
-        application.completedAt = new Date();  // Add completion timestamp
+        application.completedAt = new Date();
         await application.save();
+
+        // Update the pet's status to Adopted
+        await Pet.findByIdAndUpdate(application.petId, { status: 'Adopted' });
 
         res.status(200).json({
             success: true,

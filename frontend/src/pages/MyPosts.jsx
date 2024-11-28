@@ -26,9 +26,11 @@ const MyPosts = () => {
 				setPets(data.pets);
 			} else {
 				console.error('Fetch error:', data.message);
+				setPets([]); // Reset pets if no data
 			}
 		} catch (error) {
 			console.error('Fetch error:', error);
+			setPets([]); // Reset pets on error
 		} finally {
 			setLoading(false);
 		}
@@ -59,12 +61,19 @@ const MyPosts = () => {
 										{formatTimeAgo(pet.createdAt)}
 									</span>
 								</div>
-								<div className="mb-3">
+								<div className="relative mb-3">
 									<img
 										src={pet.image}
 										alt={pet.name}
 										className="w-full h-48 object-cover rounded-lg"
 									/>
+									<span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
+										pet.status === 'Available' 
+											? 'bg-green-500 text-white' 
+											: 'bg-blue-500 text-white'
+									}`}>
+										{pet.status}
+									</span>
 								</div>
 								<div className="space-y-2">
 									<div className="flex justify-between items-center gap-2">

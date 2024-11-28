@@ -432,14 +432,24 @@ const DashboardPage = () => {
 														{formatTimeAgo(pet.createdAt)}
 													</span>
 												</div>
-												
+
 												{/* Pet Image */}
-												<div className="mb-3">
+												<div className="relative mb-3">
 													<img
 														src={pet.image}
 														alt={pet.name}
 														className="w-full h-48 object-cover rounded-lg"
 													/>
+													{/* Status Badge */}
+													<span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
+														pet.status === 'Available' 
+															? 'bg-green-500 text-white' 
+															: pet.status === 'Adopted' 
+																? 'bg-blue-500 text-white'
+																: 'bg-gray-500 text-white'
+													}`}>
+														{pet.status}
+													</span>
 												</div>
 
 												{/* Pet Details */}

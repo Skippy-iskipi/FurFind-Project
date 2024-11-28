@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import EditProfile from './EditProfile';
 import MyPosts from './MyPosts';
+import AdoptedPets from '../components/AdoptedPets';
 
 const MyProfilePage = () => {
   const [activeTab, setActiveTab] = useState('Posts');
@@ -65,7 +66,7 @@ const MyProfilePage = () => {
       case 'Posts':
         return <MyPosts />;
       case 'Adopted Pets':
-        return <div>Your adopted pets will appear here.</div>;
+        return <AdoptedPets />;
       case 'Ratings & Feedback':
         return <div>Your ratings and feedback will appear here.</div>;
       case 'Edit Profile':

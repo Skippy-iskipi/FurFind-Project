@@ -216,15 +216,6 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
                                             <h2 className="text-2xl font-semibold">Application Status</h2>
-                                            {status === 'Completed' && completedAt && (
-                                                <p className="text-sm font-medium text-[#15803D]">
-                                                    • Completed on {new Date(completedAt).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric'
-                                                    })}
-                                                </p>
-                                            )}
                                         </div>
                                         <span className={`px-3 py-1 rounded-md text-sm ${
                                             status === 'Pending'
@@ -238,29 +229,40 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                             {status}
                                         </span>
                                     </div>
+                                    <div className="text-left">
+                                        {status === 'Completed' && completedAt && (
+                                            <p className="text-sm font-medium text-[#15803D]">
+                                                Completed on {new Date(completedAt).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </p>
+                                        )}
+                                    </div>
                                     
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Name:</p>
                                             <p className="font-medium">{pet?.name}</p>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Classification:</p>
                                             <p className="font-medium">{pet?.classification}</p>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Breed:</p>
                                             <p className="font-medium">{pet?.breed}</p>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Gender:</p>
                                             <p className="font-medium">{pet?.gender}</p>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Age:</p>
                                             <p className="font-medium">{pet?.age}</p>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             <p className="text-gray-600">Location:</p>
                                             <p className="font-medium">{pet?.location}</p>
                                         </div>
@@ -270,8 +272,8 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
 
                             <div className="grid grid-cols-2 gap-6 mt-6">
                                 <div className="bg-gray-50 p-4 rounded-md">
-                                    <h3 className="text-md font-semibold mb-4">Adopter</h3>
-                                    <div className="space-y-2">
+                                    <h3 className="text-md font-semibold mb-4 text-left">Adopter</h3>
+                                    <div className="space-y-2 text-left">
                                         <p className="text-gray-600 text-md font-medium"><span className="text-[#7A62DC]">{adopter?.name}</span></p>
                                         <p className="text-gray-600 flex items-center">
                                             <PhoneIcon className="h-5 w-5 text-[#7A62DC] inline mr-2" />
@@ -284,10 +286,10 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                     </div>
                                 </div>
                                 <div className="bg-gray-50 p-4 rounded-md">
-                                    <h3 className="text-md font-semibold mb-4">
+                                    <h3 className="text-md font-semibold mb-4 text-left">
                                         {owner?.role === 'Animal Shelter' ? 'Animal Shelter' : 'Pet Owner'}
                                     </h3>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 text-left">
                                         <p className="text-gray-600 text-md font-medium"><span className="text-[#7A62DC]">
                                             {owner?.name}
                                         </span></p>
@@ -307,15 +309,15 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
 
                     {activeTab === 'Adoption Form' && (
                         <div className="space-y-8 max-w-4xl mx-auto">
-                            <h2 className="text-2xl font-bold mb-8">Adoption Application Form</h2>
+                            <h2 className="text-2xl font-bold mb-8 text-left">Adoption Application Form</h2>
                             
-                            <div className="grid grid-cols-2 gap-12">
+                            <div className="grid grid-cols-2 gap-12 text-left">
                                 {/* Left Column */}
                                 <div>
                                     {/* Basic Information */}
                                     <div className="mb-8">
-                                        <h3 className="text-xl font-semibold mb-4">Basic Information</h3>
                                         <div className="space-y-4">
+                                            <p className="text-xl font-semibold mb-4">Basic Information</p>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Complete Address</label>
                                                 <p className="p-2 bg-gray-50 rounded-md">{formData?.address}</p>

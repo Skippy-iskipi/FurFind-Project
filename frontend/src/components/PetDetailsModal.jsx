@@ -1,5 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { formatTimeAgo } from '../utils/dateUtils';
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function parseJwt(token) {
@@ -18,6 +19,8 @@ function parseJwt(token) {
 }
 
 const PetDetailsModal = ({ pet, onClose }) => {
+    const [applicationDetails, setApplicationDetails] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [posterName, setPosterName] = useState('');
     const [posterProfilePicture, setPosterProfilePicture] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
@@ -64,6 +67,91 @@ const PetDetailsModal = ({ pet, onClose }) => {
         fetchPosterDetails();
     }, [pet]);
 
+    useEffect(() => {
+        if (pet.status === 'Adopted') {
+            fetchApplicationDetails();
+        }
+    }, [pet._id]);
+
+    const fetchApplicationDetails = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://localhost:5000/api/auth/pet-application/${pet._id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setApplicationDetails(data.application);
+            }
+        } catch (error) {
+            console.error('Error fetching application details:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (pet.status === 'Adopted' && !loading) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-2xl font-semibold">Application Details</h2>
+                            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">
+                                Completed on {new Date(applicationDetails?.completedAt).toLocaleDateString()}
+                            </span>
+                        </div>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Pet Image */}
+                        <div>
+                            <img
+                                src={pet.image}
+                                alt={pet.name}
+                                className="w-full h-64 object-cover rounded-lg"
+                            />
+                        </div>
+
+                        {/* Pet Information */}
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="text-lg font-semibold">Pet Information</h3>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <p><span className="font-medium">Name:</span> {pet.name}</p>
+                                    <p><span className="font-medium">Classification:</span> {pet.classification}</p>
+                                    <p><span className="font-medium">Breed:</span> {pet.breed}</p>
+                                    <p><span className="font-medium">Gender:</span> {pet.gender}</p>
+                                    <p><span className="font-medium">Age:</span> {pet.age}</p>
+                                    <p><span className="font-medium">Location:</span> {pet.location}</p>
+                                </div>
+                            </div>
+
+                            {/* Adopter Information */}
+                            <div>
+                                <h3 className="text-lg font-semibold">Adopter Information</h3>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <p><span className="font-medium">Name:</span> {applicationDetails?.userId?.name}</p>
+                                    <p><span className="font-medium">Contact:</span> {applicationDetails?.userId?.phoneNumber}</p>
+                                    <p><span className="font-medium">Email:</span> {applicationDetails?.userId?.email}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Original pet details modal for non-adopted pets
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
