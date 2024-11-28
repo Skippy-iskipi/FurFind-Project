@@ -900,8 +900,6 @@ export const getApplicationById = async (req, res) => {
             status: 'Approved'
         }).select('formData');
 
-        console.log('Owner Verification:', ownerVerification); // Debug log
-
         // Determine the correct contact and name based on the owner's role
         let ownerContact = 'Not available';
         let ownerName = application.petId.userId.name;
@@ -913,9 +911,6 @@ export const getApplicationById = async (req, res) => {
             ownerName = ownerVerification.formData.organizationName || ownerName;
         }
 
-        console.log('Owner Contact:', ownerContact); // Debug log
-        console.log('Owner Name:', ownerName); // Debug log
-
         // Get adopter's contact from the adoption application
         const adopterContact = application.contactNumber;
 
@@ -923,8 +918,8 @@ export const getApplicationById = async (req, res) => {
         const response = {
             success: true,
             application: {
+                _id: application._id,
                 status: application.status,
-                // Pet details
                 pet: {
                     name: application.petId.name,
                     image: application.petId.image,
@@ -934,20 +929,17 @@ export const getApplicationById = async (req, res) => {
                     age: application.petId.age,
                     location: application.petId.location,
                 },
-                // Pet owner/shelter details
                 owner: {
                     name: ownerName,
                     contactNumber: ownerContact,
                     email: application.petId.userId.email,
                     role: application.petId.userId.role
                 },
-                // Adopter details
                 adopter: {
                     name: application.userId.name,
                     contactNumber: adopterContact,
                     email: application.userId.email
                 },
-                // Application content
                 applicationContent: application.applicationContent
             }
         };
@@ -1023,5 +1015,73 @@ export const getUserAdoptionApplications = async (req, res) => {
     }
 };
 
+export const approveAdoptionRequest = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+
+        // Find the adoption application
+        const application = await AdoptionApplication.findById(applicationId);
+        
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Adoption application not found"
+            });
+        }
+
+        // Update the status of the adoption application
+        application.status = 'Approved';
+        await application.save();
+
+        // Update the pet's status to 'Adopted'
+        await Pet.findByIdAndUpdate(application.petId, { status: 'Adopted' });
+
+        res.status(200).json({
+            success: true,
+            message: "Adoption request approved successfully"
+        });
+
+    } catch (error) {
+        console.error('Error approving adoption request:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error approving adoption request",
+            error: error.message
+        });
+    }
+};
+
+export const rejectAdoptionRequest = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+
+        // Find the adoption application
+        const application = await AdoptionApplication.findById(applicationId);
+        
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Adoption application not found"
+            });
+        }
+
+        // Update the status of the adoption application
+        application.status = 'Rejected';
+        await application.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Adoption request rejected successfully"
+        });
+
+    } catch (error) {
+        console.error('Error rejecting adoption request:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error rejecting adoption request",
+            error: error.message
+        });
+    }
+};
 
 

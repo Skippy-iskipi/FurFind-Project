@@ -24,7 +24,9 @@ import {
 	rejectVerificationApplication,
 	getAdoptionRequests,
 	getApplicationById,
-	getUserAdoptionApplications
+	getUserAdoptionApplications,
+	approveAdoptionRequest,
+	rejectAdoptionRequest
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -81,5 +83,8 @@ router.get('/adoption-requests', verifyToken, getAdoptionRequests);
 router.get('/application/:applicationId', verifyToken, getApplicationById);
 
 router.get('/user-adoption-applications/:applicationId', verifyToken, getUserAdoptionApplications);
+
+router.post('/adoption-requests/:applicationId/approve', verifyToken, approveAdoptionRequest);
+router.post('/adoption-requests/:applicationId/reject', verifyToken, rejectAdoptionRequest);
 
 export default router;
