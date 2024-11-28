@@ -30,7 +30,8 @@ import {
 	completeAdoptionRequest,
 	getAdoptedPets,
 	getPetApplication,
-	getCompletedAdoptionApplications
+	getCompletedAdoptionApplications,
+	submitRating
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -98,4 +99,7 @@ router.get('/adopted-pets', verifyToken, getAdoptedPets);
 router.get('/pet-application/:petId', verifyToken, getPetApplication);
 
 router.get('/completed-adoption-applications', verifyToken, getCompletedAdoptionApplications);
+
+router.post('/ratings/submit', verifyToken, submitRating);
+
 export default router;

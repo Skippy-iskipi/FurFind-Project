@@ -8,6 +8,7 @@ import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js";
 import Pet from "../models/pet.model.js";
 import { AdoptionApplication } from '../models/adoptionApplication.model.js';
+import Rating from '../models/Ratings.js';
 
 
 export const signup = async (req, res) => {
@@ -622,90 +623,90 @@ export const getAdoptionApplicationDetails = async (req, res) => {
 
 export const getApplicationDetails = async (req, res) => {
     try {
-      const { applicationId } = req.params;
+        const { applicationId } = req.params;
   
-      const application = await AdoptionApplication.findById(applicationId)
-        .populate({
-          path: 'petId',
-          select: 'name image classification breed gender age location userId',
-          populate: {
-            path: 'userId',
-            select: 'role name contactNumber shelterContact email',
-          },
-        })
-        .populate({
-          path: 'userId',
-          select: 'role name email contactNumber',
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate({
+                path: 'petId',
+                select: 'name image classification breed gender age location userId',
+                populate: {
+                    path: 'userId',
+                    select: 'role name contactNumber shelterContact email',
+                },
+            })
+            .populate({
+                path: 'userId',
+                select: 'role name email contactNumber',
+            });
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found',
+            });
+        }
+
+        let ownerContact;
+        let owner;
+        
+        console.log('Looking for verification with userId:', application.petId.userId._id);
+        
+        const verificationApp = await VerificationApplication.findOne({
+            userId: application.petId.userId._id
         });
+        
+        console.log('Raw Verification App:', verificationApp);
+        console.log('User role:', application.petId.userId.role);
 
-      if (!application) {
-        return res.status(404).json({
-          success: false,
-          message: 'Application not found',
+        if (!verificationApp) {
+            console.log('No verification application found for this user');
+        }
+
+        if (application.petId.userId.role === 'Animal Shelter') {
+            ownerContact = verificationApp?.formData?.shelterContact;
+            owner = {
+                name: application.petId.userId.name,
+                organizationName: verificationApp?.formData?.organizationName,
+                email: application.petId.userId.email,
+                contact: ownerContact,
+                role: application.petId.userId.role
+            };
+        } else if (application.petId.userId.role === 'Pet Owner') {
+            ownerContact = verificationApp?.formData?.contact || verificationApp?.formData?.contactNumber;
+            owner = {
+                name: application.petId.userId.name,
+                email: application.petId.userId.email,
+                contact: ownerContact,
+                role: application.petId.userId.role
+            };
+        }
+
+        console.log('Final owner data:', owner);
+
+        const adopter = {
+            name: application.userId.name,
+            email: application.userId.email,
+            contactNumber: application.contactNumber,
+        };
+    
+        res.status(200).json({
+            success: true,
+            application: {
+                pet: application.petId,
+                status: application.status,
+                adopter,
+                owner,
+            },
         });
-      }
-
-      let ownerContact;
-      let owner;
-      
-      console.log('Looking for verification with userId:', application.petId.userId._id);
-      
-      const verificationApp = await VerificationApplication.findOne({
-        userId: application.petId.userId._id
-      });
-      
-      console.log('Raw Verification App:', verificationApp);
-      console.log('User role:', application.petId.userId.role);
-
-      if (!verificationApp) {
-        console.log('No verification application found for this user');
-      }
-
-      if (application.petId.userId.role === 'Animal Shelter') {
-        ownerContact = verificationApp?.formData?.shelterContact;
-        owner = {
-          name: application.petId.userId.name,
-          organizationName: verificationApp?.formData?.organizationName,
-          email: application.petId.userId.email,
-          contact: ownerContact,
-          role: application.petId.userId.role
-        };
-      } else if (application.petId.userId.role === 'Pet Owner') {
-        ownerContact = verificationApp?.formData?.contact || verificationApp?.formData?.contactNumber;
-        owner = {
-          name: application.petId.userId.name,
-          email: application.petId.userId.email,
-          contact: ownerContact,
-          role: application.petId.userId.role
-        };
-      }
-
-      console.log('Final owner data:', owner);
-
-      const adopter = {
-        name: application.userId.name,
-        email: application.userId.email,
-        contactNumber: application.contactNumber,
-      };
-  
-      res.status(200).json({
-        success: true,
-        application: {
-          pet: application.petId,
-          status: application.status,
-          adopter,
-          owner,
-        },
-      });
     } catch (error) {
-      console.error('Error fetching application details:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching application details',
-        error: error.message,
-      });
+        console.error('Error fetching application details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching application details',
+            error: error.message,
+        });
     }
-  };
+};
 
 export const getAllUsers = async (_, res) => {
     try {
@@ -968,7 +969,7 @@ export const getApplicationById = async (req, res) => {
                     select: 'name email role'
                 }
             })
-            .select('status completedAt contactNumber userId')
+            .select('status completedAt contactNumber userId ratings')
             .populate('userId', 'name email');
 
         if (!application) {
@@ -1025,7 +1026,8 @@ export const getApplicationById = async (req, res) => {
                     name: application.userId.name,
                     email: application.userId.email,
                     contactNumber: application.contactNumber
-                }
+                },
+                ratings: application.ratings
             }
         };
 
@@ -1246,5 +1248,46 @@ export const getCompletedAdoptionApplications = async (req, res) => {
             message: "Error fetching completed adoption applications",
             error: error.message
         });
+    }
+};
+
+export const submitRating = async (req, res) => {
+    try {
+        const { applicationId, feedback, stars } = req.body;
+        const adopterId = req.userId;
+
+        // Fetch the application to get the ownerId
+        const application = await AdoptionApplication.findById(applicationId).populate('petId');
+        if (!application) {
+            return res.status(404).json({ success: false, message: 'Application not found' });
+        }
+        const ownerId = application.petId.userId;
+
+        // Check for existing rating
+        const existingRating = await Rating.findOne({ applicationId, adopterId });
+        if (existingRating) {
+            return res.status(400).json({ success: false, message: 'You have already rated this application' });
+        }
+
+        const newRating = new Rating({ applicationId, adopterId, ownerId, feedback, stars });
+        await newRating.save();
+
+        res.status(201).json({ success: true, message: 'Rating submitted successfully' });
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        res.status(500).json({ success: false, message: 'Error submitting rating', error: error.message });
+    }
+};
+
+export const getRatings = async (req, res) => {
+    try {
+        const ratings = await Rating.find()
+            .populate('adopterId', 'name profilePicture')
+            .populate('ownerId', 'name role');
+
+        res.status(200).json({ success: true, ratings });
+    } catch (error) {
+        console.error('Error fetching ratings:', error);
+        res.status(500).json({ success: false, message: 'Error fetching ratings', error: error.message });
     }
 };

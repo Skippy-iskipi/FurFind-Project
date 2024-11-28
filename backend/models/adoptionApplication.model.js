@@ -23,6 +23,10 @@ const adoptionApplicationSchema = new mongoose.Schema({
     completedAt: {
         type: Date,
         default: null
+    },
+    rating: {
+        type: Number,
+        default: null
     }
 }, { timestamps: true });
 

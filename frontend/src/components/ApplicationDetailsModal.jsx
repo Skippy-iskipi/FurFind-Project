@@ -1,10 +1,9 @@
-// ApplicationDetailsModal.jsx
-
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DocumentViewerModal from './DocumentViewerModal';
 import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/solid';
+import RatingForm from './RatingForm';
 
 const FormSection = ({ title, children }) => (
     <div className="mb-8">
@@ -17,23 +16,18 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
     const [activeTab, setActiveTab] = useState('Application Details');
     const [viewingDocument, setViewingDocument] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
     if (!isOpen || !application) return null;
     
-    const { status, pet, owner, adopter, formData, completedAt } = application;
+    const { status, pet, owner, adopter, formData, completedAt, ratings } = application;
 
     const handleApprove = async () => {
         try {
-            if (!application) {
-                console.error('Application data is missing');
-                throw new Error('Application data is missing');
-            }
+            if (!application) throw new Error('Application data is missing');
 
             const applicationId = application._id || application.id;
-            if (!applicationId) {
-                console.error('Application ID is missing:', application);
-                throw new Error('Application ID is missing');
-            }
+            if (!applicationId) throw new Error('Application ID is missing');
 
             setIsLoading(true);
             
@@ -75,16 +69,10 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
         }
 
         try {
-            if (!application) {
-                console.error('Application data is missing');
-                throw new Error('Application data is missing');
-            }
+            if (!application) throw new Error('Application data is missing');
 
             const applicationId = application._id || application.id;
-            if (!applicationId) {
-                console.error('Application ID is missing:', application);
-                throw new Error('Application ID is missing');
-            }
+            if (!applicationId) throw new Error('Application ID is missing');
 
             setIsLoading(true);
             
@@ -122,16 +110,10 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
 
     const handleComplete = async () => {
         try {
-            if (!application) {
-                console.error('Application data is missing');
-                throw new Error('Application data is missing');
-            }
+            if (!application) throw new Error('Application data is missing');
 
             const applicationId = application._id || application.id;
-            if (!applicationId) {
-                console.error('Application ID is missing:', application);
-                throw new Error('Application ID is missing');
-            }
+            if (!applicationId) throw new Error('Application ID is missing');
 
             setIsLoading(true);
             
@@ -140,7 +122,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include' // For cookie-based auth
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -167,6 +149,36 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
             }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleRatingSubmit = async (ratingData) => {
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/ratings/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    applicationId: application._id || application.id,
+                    feedback: ratingData.feedback,
+                    stars: ratingData.stars
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to submit rating');
+            }
+
+            toast.success('Rating submitted successfully');
+            setIsRatingModalOpen(false);
+            if (onActionComplete) onActionComplete();
+        } catch (error) {
+            console.error('Error submitting rating:', error);
+            toast.error(error.message || 'Error submitting rating');
         }
     };
 
@@ -265,6 +277,24 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                         <div className="flex gap-2">
                                             <p className="text-gray-600">Location:</p>
                                             <p className="font-medium">{pet?.location}</p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <p className="text-gray-600">Ratings:</p>
+                                            {ratings && ratings.length > 0 ? (
+                                                <button
+                                                    onClick={() => setIsRatingModalOpen(true)}
+                                                    className="text-[#7A62DC] underline"
+                                                >
+                                                    View Ratings
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setIsRatingModalOpen(true)}
+                                                    className="text-[#7A62DC] underline"
+                                                >
+                                                    Rate
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -517,7 +547,34 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                     )}
                 </div>
             </div>
-
+            {isRatingModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-md p-6 max-w-md w-full">
+                        {ratings && ratings.length > 0 ? (
+                            <div>
+                                <h3 className="text-xl font-semibold mb-4">Ratings and Feedback</h3>
+                                {ratings.map((rating, index) => (
+                                    <div key={index} className="mb-4">
+                                        <p className="font-medium">Stars: {rating.stars}</p>
+                                        <p className="text-gray-600">Feedback: {rating.feedback}</p>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => setIsRatingModalOpen(false)}
+                                    className="mt-4 px-4 py-2 bg-[#7A62DC] text-white rounded-md"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        ) : (
+                            <RatingForm
+                                onSubmit={handleRatingSubmit}
+                                onCancel={() => setIsRatingModalOpen(false)}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
             <DocumentViewerModal 
                 isOpen={!!viewingDocument}
                 onClose={() => setViewingDocument(null)}
