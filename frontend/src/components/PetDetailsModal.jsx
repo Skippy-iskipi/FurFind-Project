@@ -165,7 +165,7 @@ const PetDetailsModal = ({ pet, onClose }) => {
                     </button>
                 </div>
 
-                <div className="p-6">
+                <div className="pl-6 pr-6 pt-0 pb-6">
                     {/* User Info Section */}
                     <div className="flex items-center gap-4 mb-6">
                         <div className="flex items-center gap-4">
