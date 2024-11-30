@@ -14,6 +14,7 @@ import VerificationApplicationPage from './pages/VerificationApplication'
 import AdoptionApplication from './pages/AdoptionApplication'
 import AdminDashboard from './pages/AdminDashboard'
 import UserProfilePage from './pages/UserProfilePage'
+import LandingPage from './pages/LandingPage'
 
 
 
@@ -35,7 +36,7 @@ const RedirectAuthenticatedUser = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
 	if (isAuthenticated && user.isVerified) {
-		return <Navigate to='/' replace />;
+		return <Navigate to='/dashboard' replace />;
 	}
 
 	return children;
@@ -55,8 +56,9 @@ function App() {
   return (
     <>
 			<Routes>
+				<Route path='/' element={<LandingPage />} />
 				<Route
-					path='/'
+					path='/dashboard'
 					element={
 						<ProtectedRoute>
 							<DashboardPage />

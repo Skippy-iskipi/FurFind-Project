@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
-    <header className="bg-white shadow-md w-full">
+    <header className="bg-[#F5F5F5]w-full">
       <div className="w-11/12 mx-auto flex justify-between items-center pt-4 pb-4">
         <Link to="/" className="text-2xl font-bold text-[#7A62DC]">
           <img src="/public/images/logo.png" alt="FurFind Logo" className="h-12 inline-block mr-2" />
