@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import EditProfile from './EditProfile';
@@ -22,6 +22,9 @@ const MyProfilePage = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -63,6 +66,31 @@ const MyProfilePage = () => {
 
     fetchProfileData();
   }, []);
+
+  const handleUserSearch = async (query) => {
+    setSearchQuery(query);
+    
+    if (query.trim() === '') {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/auth/users/search?query=${query}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setSearchResults(data.users);
+        setShowSearchResults(true);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Failed to search users');
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -149,8 +177,57 @@ const MyProfilePage = () => {
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#7A62DC]">
               <Menu className="text-[#7A62DC]" />
             </button>
-            <img src="/images/logo.png" alt="FurFind" className="h-12 inline-block mr-2" />
+            <button
+              onClick={() => navigate('/')}
+              className="h-12 inline-block mr-2"
+            >
+              <img
+                src="/images/logo.png"
+                alt="FurFind"
+                className="h-full"
+              />
+            </button>
+            
+            {/* Moved search here and made it shorter */}
+            <div className="relative w-96">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7A62DC] w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search user..."
+                value={searchQuery}
+                onChange={(e) => handleUserSearch(e.target.value)}
+                className="border border-gray-300 px-10 py-2 rounded-lg w-full focus:outline-none focus:border-[#7A62DC] focus:ring-1 focus:ring-[#7A62DC] transition-colors"
+              />
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        navigate(`/user-profile/${user._id}`);
+                        setShowSearchResults(false);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <img
+                        src={user.profilePicture || '/images/default-profile.jpg'}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-gray-500">{user.role}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
           <div className="flex items-center gap-4">
             <Bell className="text-[#7A62DC]" />
             <span className="text-gray-600">Welcome, {profileData.name}</span>

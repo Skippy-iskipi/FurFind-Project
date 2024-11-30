@@ -28,6 +28,9 @@ const DashboardPage = () => {
 	const [loading, setLoading] = useState(true);
 	const [selectedPet, setSelectedPet] = useState(null);
 	const [showVerificationPopup, setShowVerificationPopup] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [searchResults, setSearchResults] = useState([]);
+	const [showSearchResults, setShowSearchResults] = useState(false);
 
 	const handlePostPetClick = () => {
 		if (user.role === 'Adopter') {
@@ -151,6 +154,31 @@ const DashboardPage = () => {
 		fetchFilteredPets();
 	}, [classification, selectedAges, selectedGenders, selectedBreed, selectedLocation]);
 
+	const handleUserSearch = async (query) => {
+		setSearchQuery(query);
+		
+		if (query.trim() === '') {
+		  setSearchResults([]);
+		  setShowSearchResults(false);
+		  return;
+		}
+	  
+		try {
+		  const response = await fetch(`http://localhost:5000/api/auth/users/search?query=${query}`, {
+			credentials: 'include'
+		  });
+		  const data = await response.json();
+		  
+		  if (data.success) {
+			setSearchResults(data.users);
+			setShowSearchResults(true);
+		  }
+		} catch (error) {
+		  console.error('Search error:', error);
+		  toast.error('Failed to search users');
+		}
+	  };
+
 	return (
 		<div className="min-h-screen bg-gray-50">
 			{/* Sidebar Navigation */}
@@ -231,13 +259,42 @@ const DashboardPage = () => {
 								<Filter className={`w-5 h-5 ${showFilters ? 'text-white' : 'text-[#7A62DC]'}`} />
 								<span className="font-medium">Filters</span>
 							</button>
-							<div className="relative">
+							<div className="relative w-96">
 								<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7A62DC] w-5 h-5" />
 								<input
 									type="text"
-									placeholder="Search pets..."
-									className="border border-gray-300 px-10 py-2 rounded-lg w-96"
+									placeholder="Search user..."
+									value={searchQuery}
+									onChange={(e) => handleUserSearch(e.target.value)}
+									className="border border-gray-300 px-10 py-2 rounded-lg w-full focus:outline-none focus:border-[#7A62DC] focus:ring-1 focus:ring-[#7A62DC] transition-colors"
 								/>
+								
+								{/* Search Results Dropdown */}
+								{showSearchResults && searchResults.length > 0 && (
+									<div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+										{searchResults.map((user) => (
+											<div
+												key={user._id}
+												className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer"
+												onClick={() => {
+													navigate(`/user-profile/${user._id}`);
+													setShowSearchResults(false);
+													setSearchQuery('');
+												}}
+												>
+												<img
+													src={user.profilePicture || '/images/default-profile.jpg'}
+													alt={user.name}
+													className="w-8 h-8 rounded-full object-cover"
+												/>
+												<div>
+													<p className="font-medium">{user.name}</p>
+													<p className="text-sm text-gray-500">{user.role}</p>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
 							</div>
 						</div>
 

@@ -37,6 +37,7 @@ import {
 	getUserPetsByUserId,
 	getUserRatingsByUserId,
 	getAdoptedPetsByAdopter,
+	searchUsers,
 
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -116,5 +117,7 @@ router.get('/feedback', verifyToken, getRatings);
 router.get('/user-profile/:userId', verifyToken, getUserProfileById);
 
 router.get('/adopted-pets/:userId', verifyToken, getAdoptedPetsByAdopter);
+
+router.get('/users/search', verifyToken, searchUsers);
 
 export default router;

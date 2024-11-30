@@ -1369,3 +1369,37 @@ export const getAdoptedPetsByAdopter = async (req, res) => {
     });
   }
 };
+
+export const searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(200).json({
+                success: true,
+                users: []
+            });
+        }
+
+        // Search for users by name, excluding the admin account
+        const users = await User.find({
+            name: { $regex: query, $options: 'i' },
+            email: { $ne: "furfindadmin@furfind.com" }
+        })
+        .select('name email profilePicture role')
+        .limit(5);
+
+        res.status(200).json({
+            success: true,
+            users
+        });
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error searching users",
+            error: error.message
+        });
+    }
+};
+
