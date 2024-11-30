@@ -13,6 +13,7 @@ import MyProfilePage from './pages/MyProfilePage'
 import VerificationApplicationPage from './pages/VerificationApplication'
 import AdoptionApplication from './pages/AdoptionApplication'
 import AdminDashboard from './pages/AdminDashboard'
+import UserProfilePage from './pages/UserProfilePage'
 
 
 
@@ -119,6 +120,15 @@ function App() {
 				/>
 
         <Route path="/adoption-application/:petId" element={<AdoptionApplication />} />
+
+				<Route
+					path='/user-profile/:userId'
+					element={
+						<ProtectedRoute>
+							<UserProfilePage />
+						</ProtectedRoute>
+					}
+				/>
 
 				{/* catch all routes */}
 				<Route path='*' element={<Navigate to='/' replace />} />

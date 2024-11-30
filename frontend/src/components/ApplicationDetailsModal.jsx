@@ -208,7 +208,7 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                             Adoption Form
                         </button>
                     </div>
-                    <button onClick={onClose} className="text-[#7A62DC] hover:text-[#58E6E0]">
+                    <button onClick={onClose} className="px-2 py-1 text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors">
                         <X size={24} />
                     </button>
                 </div>

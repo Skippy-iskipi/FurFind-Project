@@ -156,12 +156,12 @@ const PetDetailsModal = ({ pet, onClose }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
                 {/* Back Button */}
-                <div className="p-4 text-left">
+                <div className="p-4 text-right">
                     <button
                         onClick={onClose}
-                        className="px-4 py-1 border border-[#7A62DC] text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
+                        className="px-2 py-1 text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
                     >
-                        Back
+                        <X size={25} />
                     </button>
                 </div>
 
@@ -172,10 +172,16 @@ const PetDetailsModal = ({ pet, onClose }) => {
                             <img
                                 src={posterProfilePicture || './images/default-profile.jpg'}
                                 alt={posterName || 'Anonymous'}
-                                className="w-12 h-12 rounded-full object-cover mr-2 bg-gray-200"
+                                className="w-12 h-12 rounded-full object-cover mr-2 bg-gray-200 cursor-pointer"
+                                onClick={() => navigate(`/user-profile/${pet.userId?._id || pet.userId}`)}
                             />
                             <div>
-                                <h2 className="font-semibold text-lg">{posterName || 'Anonymous'}</h2>
+                                <h2
+                                    className="font-semibold text-lg cursor-pointer"
+                                    onClick={() => navigate(`/user-profile/${pet.userId?._id || pet.userId}`)}
+                                >
+                                    {posterName || 'Anonymous'}
+                                </h2>
                                 <p className="text-gray-500 text-sm text-left">{formatTimeAgo(pet.createdAt)}</p>
                             </div>
                         </div>

@@ -11,6 +11,7 @@ import { AdoptionApplication } from '../models/adoptionApplication.model.js';
 import Rating from '../models/Ratings.js';
 
 
+
 export const signup = async (req, res) => {
     const { email, password, name } = req.body;
 
@@ -97,8 +98,10 @@ export const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid email or password" });
         }
 
-        // Generate a token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generate a token with 5-hour expiration
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
+            expiresIn: '5h'
+        });
 
         generateTokenAndSetCookie(res, user._id);
 
@@ -108,7 +111,7 @@ export const login = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Logged in successfully",
-            token, // Include the token in the response
+            token,
             user: {
                 ...user._doc,
                 password: undefined,
@@ -1295,4 +1298,74 @@ export const getRatings = async (req, res) => {
         console.error('Error fetching ratings:', error);
         res.status(500).json({ success: false, message: 'Error fetching ratings', error: error.message });
     }
+};
+
+export const getUserProfileById = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching user profile', error: error.message });
+    }
+};
+
+export const getUserPetsByUserId = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const pets = await Pet.find({ userId });
+    res.status(200).json({ success: true, pets });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getUserRatingsByUserId = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const ratings = await Rating.find({ ownerId: userId })
+      .populate('adopterId', 'name profilePicture')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ success: true, ratings });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAdoptedPetsByAdopter = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const pets = await Pet.find({ 
+      userId,
+      status: 'Adopted'
+    })
+    .populate({
+      path: 'userId',
+      select: 'name profilePicture'
+    })
+    .sort({ createdAt: -1 });
+
+    if (!pets.length) {
+      return res.status(200).json({
+        success: true,
+        pets: [] 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      pets
+    });
+  } catch (error) {
+    console.error('Error fetching adopted pets:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching adopted pets",
+      error: error.message
+    });
+  }
 };

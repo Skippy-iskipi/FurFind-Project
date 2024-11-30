@@ -32,7 +32,12 @@ import {
 	getPetApplication,
 	getCompletedAdoptionApplications,
 	submitRating,
-	getRatings
+	getRatings,
+	getUserProfileById,
+	getUserPetsByUserId,
+	getUserRatingsByUserId,
+	getAdoptedPetsByAdopter,
+
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -72,6 +77,10 @@ router.post('/update-role', verifyToken, updateUserRole);
 
 router.get('/user-pets', verifyToken, getUserPets);
 
+router.get('/user-pets/:userId', verifyToken, getUserPetsByUserId);
+router.get('/user-ratings/:userId', verifyToken, getUserRatingsByUserId);
+
+
 router.get('/adoption-applications-details', customVerifyToken, getAdoptionApplicationDetails);
 
 router.get('/application-details/:applicationId', getApplicationDetails);
@@ -103,5 +112,9 @@ router.get('/completed-adoption-applications', verifyToken, getCompletedAdoption
 
 router.post('/ratings/submit', verifyToken, submitRating);
 router.get('/feedback', verifyToken, getRatings);
+
+router.get('/user-profile/:userId', verifyToken, getUserProfileById);
+
+router.get('/adopted-pets/:userId', verifyToken, getAdoptedPetsByAdopter);
 
 export default router;

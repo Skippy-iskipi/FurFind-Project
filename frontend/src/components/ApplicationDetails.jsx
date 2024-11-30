@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/solid';
+import { X } from 'lucide-react';
 
 const ApplicationDetails = ({ applicationId, closeModal }) => {
   const [application, setApplication] = useState(null);
@@ -34,12 +35,14 @@ const ApplicationDetails = ({ applicationId, closeModal }) => {
 
   return (
     <div className="w-full">
-      <button
-        onClick={closeModal}
-        className="px-4 py-1 mb-4 border border-[#7A62DC] text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
-      >
-        Back
-      </button>
+      <div className="text-right">
+        <button
+          onClick={closeModal}
+          className="px-2 py-1 text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
+        >
+          <X size={25} />
+        </button>
+      </div>
       <h2 className="text-2xl font-bold mb-4 font-k2d">Application Status</h2>
       <div className="grid grid-cols-2 gap-6">
         <img

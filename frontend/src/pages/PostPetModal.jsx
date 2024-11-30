@@ -154,7 +154,7 @@ const PostPetModal = ({ isOpen, onClose }) => {
                     <h2 className="text-2xl font-semibold text-purple-600 font-k2d">Post a Pet</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="px-1 py-1 text-[#7A62DC] rounded-md hover:bg-[#7A62DC] hover:text-white transition-colors"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
