@@ -12,6 +12,7 @@ import Rating from '../models/Ratings.js';
 import { UserPreference } from '../models/userPreference.model.js';
 import { calculatePetScore } from '../services/recommendationService.js';
 import { getHybridRecommendations } from '../services/recommendationService.js';
+import { Notification } from '../models/notification.model.js';
 
 
 
@@ -431,6 +432,14 @@ export const submitVerificationApplication = async (req, res) => {
         });
 
         await verificationApplication.save();
+
+        // Create notification for the user
+        await createNotification(
+            userId,
+            'VERIFICATION_STATUS',
+            `Your ${type} verification application has been submitted and is under review.`,
+            verificationApplication._id
+        );
 
         res.status(201).json({ success: true, message: 'Verification application submitted successfully' });
     } catch (error) {
@@ -949,7 +958,6 @@ export const rejectVerificationApplication = async (req, res) => {
 
 export const getAdoptionRequests = async (req, res) => {
     try {
-        console.log('User ID:', req.userId);
         const userId = req.userId;
 
         // Find all pets owned by this user
@@ -969,6 +977,17 @@ export const getAdoptionRequests = async (req, res) => {
             select: 'name image'
         })
         .select('createdAt status');
+
+        // Mark related notifications as read when viewing adoption requests
+        await Notification.updateMany(
+            {
+                userId,
+                type: 'APPLICATION_RECEIVED',
+                read: false,
+                relatedId: { $in: applications.map(app => app._id) }
+            },
+            { read: true }
+        );
 
         if (!applications.length) {
             return res.status(200).json({
@@ -1095,8 +1114,15 @@ export const getUserAdoptionApplications = async (req, res) => {
 
         // Fetch specific adoption application with populated fields
         const application = await AdoptionApplication.findById(applicationId)
-            .populate('petId', 'name image classification breed gender age location')
+            .populate('petId', 'name image classification breed gender age location userId')
             .populate('userId', 'name email contactNumber')
+            .populate({
+                path: 'petId',
+                populate: {
+                    path: 'userId',
+                    select: 'name email role'
+                }
+            });
 
         if (!application) {
             return res.status(404).json({
@@ -1104,6 +1130,25 @@ export const getUserAdoptionApplications = async (req, res) => {
                 message: "Application not found"
             });
         }
+
+        // Mark related notifications as read if the viewer is the pet owner or the applicant
+        if (req.userId === application.petId.userId._id.toString() || 
+            req.userId === application.userId._id.toString()) {
+            await Notification.updateMany(
+                {
+                    relatedId: applicationId,
+                    userId: req.userId,
+                    read: false
+                },
+                { read: true }
+            );
+        }
+
+        // Get any existing notifications for this application
+        const notifications = await Notification.find({
+            relatedId: applicationId,
+            userId: req.userId
+        }).sort({ createdAt: -1 });
 
         // Format the response to match the expected structure
         const response = {
@@ -1129,12 +1174,30 @@ export const getUserAdoptionApplications = async (req, res) => {
                     proofOfResidence: application.proofOfResidence || "N/A",
                     proofOfIncome: application.proofOfIncome || "N/A"
                 },
-                pet: application.petId,
+                pet: {
+                    ...application.petId.toObject(),
+                    owner: {
+                        name: application.petId.userId.name,
+                        email: application.petId.userId.email,
+                        role: application.petId.userId.role
+                    }
+                },
                 adopter: application.userId,
                 status: application.status,
-                createdAt: application.createdAt
+                createdAt: application.createdAt,
+                notifications: notifications // Include related notifications
             }]
         };
+
+        // Create a notification for the pet owner when application is viewed (optional)
+        if (req.userId === application.petId.userId._id.toString()) {
+            await createNotification(
+                application.userId._id,
+                'APPLICATION_VIEWED',
+                `Your adoption application for ${application.petId.name} has been viewed by the owner`,
+                applicationId
+            );
+        }
 
         res.status(200).json(response);
 
@@ -1151,9 +1214,9 @@ export const getUserAdoptionApplications = async (req, res) => {
 export const approveAdoptionRequest = async (req, res) => {
     try {
         const { applicationId } = req.params;
-
-        // Find the adoption application
-        const application = await AdoptionApplication.findById(applicationId);
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate('userId')
+            .populate('petId');
         
         if (!application) {
             return res.status(404).json({
@@ -1162,18 +1225,22 @@ export const approveAdoptionRequest = async (req, res) => {
             });
         }
 
-        // Update the status of the adoption application
         application.status = 'Approved';
         await application.save();
+        await Pet.findByIdAndUpdate(application.petId._id, { status: 'Adopted' });
 
-        // Update the pet's status to 'Adopted'
-        await Pet.findByIdAndUpdate(application.petId, { status: 'Adopted' });
+        // Create notification for the adopter
+        await createNotification(
+            application.userId._id,
+            'ADOPTION_STATUS',
+            `Your adoption application for ${application.petId.name} has been approved!`,
+            applicationId
+        );
 
         res.status(200).json({
             success: true,
             message: "Adoption request approved successfully"
         });
-
     } catch (error) {
         console.error('Error approving adoption request:', error);
         res.status(500).json({
@@ -1188,8 +1255,10 @@ export const rejectAdoptionRequest = async (req, res) => {
     try {
         const { applicationId } = req.params;
 
-        // Find the adoption application
-        const application = await AdoptionApplication.findById(applicationId);
+        // Find the adoption application and populate necessary fields
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate('petId', 'name')
+            .populate('userId', 'name');
         
         if (!application) {
             return res.status(404).json({
@@ -1201,6 +1270,14 @@ export const rejectAdoptionRequest = async (req, res) => {
         // Update the status of the adoption application
         application.status = 'Rejected';
         await application.save();
+
+        // Create notification for the adopter
+        await createNotification(
+            application.userId._id,
+            'ADOPTION_STATUS',
+            `Your adoption request for ${application.petId.name} has been rejected`,
+            applicationId
+        );
 
         res.status(200).json({
             success: true,
@@ -1302,14 +1379,12 @@ export const submitRating = async (req, res) => {
         const { applicationId, feedback, stars } = req.body;
         const adopterId = req.userId;
 
-        // Fetch the application to get the ownerId
         const application = await AdoptionApplication.findById(applicationId).populate('petId');
         if (!application) {
             return res.status(404).json({ success: false, message: 'Application not found' });
         }
         const ownerId = application.petId.userId;
 
-        // Check for existing rating
         const existingRating = await Rating.findOne({ applicationId, adopterId });
         if (existingRating) {
             return res.status(400).json({ success: false, message: 'You have already rated this application' });
@@ -1317,6 +1392,14 @@ export const submitRating = async (req, res) => {
 
         const newRating = new Rating({ applicationId, adopterId, ownerId, feedback, stars });
         await newRating.save();
+
+        // Create notification for the pet owner
+        await createNotification(
+            ownerId,
+            'RATING_RECEIVED',
+            `You received a ${stars}-star rating for an adoption.`,
+            newRating._id
+        );
 
         res.status(201).json({ success: true, message: 'Rating submitted successfully' });
     } catch (error) {
@@ -1590,3 +1673,99 @@ export const getRecommendedPets = async (req, res) => {
     }
 };
 
+export const createNotification = async (userId, type, message, relatedId) => {
+    try {
+        const notification = new Notification({
+            userId,
+            type,
+            message,
+            relatedId
+        });
+        await notification.save();
+        return notification;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        throw error;
+    }
+};
+
+export const getUserNotifications = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const notifications = await Notification.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(50);
+
+        res.status(200).json({
+            success: true,
+            notifications
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching notifications",
+            error: error.message
+        });
+    }
+};
+
+export const markNotificationAsRead = async (req, res) => {
+    try {
+        const { notificationId } = req.params;
+        const userId = req.userId;
+
+        const notification = await Notification.findOneAndUpdate(
+            { _id: notificationId, userId },
+            { read: true },
+            { new: true }
+        );
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            notification
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error marking notification as read",
+            error: error.message
+        });
+    }
+};
+
+export const markAllNotificationsAsRead = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        // Update all unread notifications for the user
+        const result = await Notification.updateMany(
+            { 
+                userId,
+                read: false 
+            },
+            { 
+                read: true 
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "All notifications marked as read",
+            modifiedCount: result.modifiedCount
+        });
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error marking all notifications as read",
+            error: error.message
+        });
+    }
+};

@@ -3,13 +3,14 @@ import PostPetModal from './PostPetModal';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Bell, Filter, Menu, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { Filter, Menu, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatTimeAgo } from '../utils/dateUtils';
 import PetDetailsModal from '../components/PetDetailsModal';
 import MyApplications from '../components/MyApplications';
 import AdoptionRequest from '../components/AdoptionRequest';
 import AdoptionHistory from '../components/AdoptionHistory';
 import PreferenceModal from '../components/PreferenceModal';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 
 const DashboardPage = () => {
@@ -355,7 +356,7 @@ const DashboardPage = () => {
 							>
 								Set Preferences
 							</button>
-							<Bell className="text-[#7A62DC]" />
+							<NotificationDropdown />
 							<button onClick={() => navigate('/my-profile')}>
 								<img
 									src={user.profilePicture || '/images/default-profile.jpg'}

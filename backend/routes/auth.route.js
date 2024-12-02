@@ -41,7 +41,9 @@ import {
 	searchUsers,
 	updateUserPreferences,
 	getRecommendedPets,
-
+	getUserNotifications,
+	markNotificationAsRead,
+	markAllNotificationsAsRead
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
@@ -126,6 +128,10 @@ router.get('/users/search', verifyToken, searchUsers);
 
 router.post('/preferences', verifyToken, updateUserPreferences);
 router.get('/recommended-pets', verifyToken, getRecommendedPets);
+
+router.get('/notifications', verifyToken, getUserNotifications);
+router.patch('/notifications/:notificationId/read', verifyToken, markNotificationAsRead);
+router.patch('/notifications/mark-all-read', verifyToken, markAllNotificationsAsRead);
 
 router.get('/google', passport.authenticate('google', {
 	scope: ['profile', 'email']
