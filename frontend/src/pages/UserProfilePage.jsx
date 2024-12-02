@@ -115,7 +115,7 @@ const UserProfilePage = () => {
             <img src="/images/logo.png" alt="Logo" className="h-16" />
           </div>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Dashboard
@@ -127,25 +127,25 @@ const UserProfilePage = () => {
             My Profile
           </button>
           <button
-            onClick={() => navigate('/my-applications')}
+            onClick={() => navigate('/dashboard')}
             className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             My Applications
           </button>
           <button
-            onClick={() => navigate('/adoption-history')}
+            onClick={() => navigate('/dashboard')}
             className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Adoption History
           </button>
           <button
-            onClick={() => navigate('/adoption-request')}
+            onClick={() => navigate('/dashboard')}
             className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Adoption Request
           </button>
           <button
-            onClick={() => navigate('/help-faqs')}
+            onClick={() => navigate('/dashboard')}
             className="w-full text-left px-4 py-2 rounded-lg text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors"
           >
             Help & FAQs
@@ -175,7 +175,7 @@ const UserProfilePage = () => {
               <Menu className="text-[#7A62DC]" />
             </button>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="h-12 inline-block mr-2"
             >
               <img

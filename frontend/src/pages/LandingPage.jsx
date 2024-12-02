@@ -94,14 +94,14 @@ const LandingPage = () => {
           <p className="text-gray-600 mb-8">
             FurFind streamlines pet adoption in Bataan, connecting adopters with local shelters and individual owners for accessible, transparent processes.
           </p>
-          <button className="bg-[#7A62DC] text-white py-2 px-6 rounded-md hover:bg-[#6952bd] transition duration-200">
+          <Link to="/signup" className="bg-[#7A62DC] text-white py-2 px-6 rounded-md hover:bg-[#6952bd] transition duration-200">
             Get Started
-          </button>
+          </Link>
         </div>
         <div className="w-1/2">
-          <img 
-            src="./public/images/hero1.png" 
-            alt="Pet adoption illustration" 
+          <img
+            src="./public/images/hero1.png"
+            alt="Pet adoption illustration"
             className="w-full"
           />
         </div>

@@ -22,7 +22,7 @@ const InsideSidebar = ({ isMenuOpen}) => {
                 <div className="flex items-center justify-center mb-4">
                     <img src="/images/logo.png" alt="Logo" className="h-16" />
                 </div>
-                <button onClick={() => navigate('/')} className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors">
+                <button onClick={() => navigate('/dashboard')} className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors">
                     Dashboard
                 </button>
                 <button onClick={() => navigate('/my-profile')} className="w-full text-left px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-600 hover:text-white transition-colors">
