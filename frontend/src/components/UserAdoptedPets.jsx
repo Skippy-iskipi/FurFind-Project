@@ -3,6 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import ApplicationDetailsModal from './ApplicationDetailsModal';
 import { formatTimeAgo } from '../utils/dateUtils';
+import { FaStar } from 'react-icons/fa';
 
 const UserAdoptedPets = ({ userId, token }) => {
   const [adoptedByUser, setAdoptedByUser] = useState([]);
@@ -16,7 +17,7 @@ const UserAdoptedPets = ({ userId, token }) => {
   const fetchAdoptedPets = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
+      const adoptedResponse = await axios.get(
         `http://localhost:5000/api/auth/adopted-pets/${userId}`,
         {
           headers: {
@@ -26,15 +27,46 @@ const UserAdoptedPets = ({ userId, token }) => {
         }
       );
 
-      if (response.data.success) {
-        setAdoptedByUser(response.data.applications.adoptedByMe || []);
-        setAdoptedFromUser(response.data.applications.adoptedFromMe || []);
+      const ratingsResponse = await axios.get(
+        `http://localhost:5000/api/auth/user-ratings/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (adoptedResponse.data.success && ratingsResponse.data.success) {
+        const ratingsMap = ratingsResponse.data.ratings.reduce((acc, rating) => {
+          acc[rating.petId] = rating.stars;
+          return acc;
+        }, {});
+
+        const adoptedByMeWithRatings = (adoptedResponse.data.applications.adoptedByMe || [])
+          .map(pet => ({
+            ...pet,
+            rating: ratingsMap[pet.petId] || 0
+          }))
+          .sort((a, b) => new Date(b.dateAdopted) - new Date(a.dateAdopted));
+
+        const adoptedFromMeWithRatings = (adoptedResponse.data.applications.adoptedFromMe || [])
+          .map(pet => ({
+            ...pet,
+            rating: ratingsMap[pet.petId] || 0
+          }))
+          .sort((a, b) => new Date(b.dateAdopted) - new Date(a.dateAdopted));
+
+        setAdoptedByUser(adoptedByMeWithRatings);
+        setAdoptedFromUser(adoptedFromMeWithRatings);
       } else {
-        console.error('Failed to fetch adopted pets:', response.data.message);
+        console.error('Failed to fetch data:', 
+          adoptedResponse.data.message || ratingsResponse.data.message
+        );
       }
     } catch (error) {
-      console.error('Error fetching adopted pets:', error);
-      toast.error('Failed to fetch adopted pets');
+      console.error('Error fetching data:', error);
+      toast.error('Failed to fetch adoption data');
     } finally {
       setLoading(false);
     }
@@ -66,6 +98,21 @@ const UserAdoptedPets = ({ userId, token }) => {
       fetchAdoptedPets();
     }
   }, [userId]);
+
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[...Array(5)].map((_, index) => (
+          <FaStar
+            key={index}
+            className={`w-4 h-4 ${
+              index < rating ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -176,9 +223,10 @@ const UserAdoptedPets = ({ userId, token }) => {
                   </span>
                 </div>
                 <div className="mt-2">
-                  <p className="text-gray-600 text-left">
+                  <p className="text-gray-600 text-left mb-2">
                     Adopted by: <span className="text-[#7A62DC] font-bold">{pet.adopterName}</span>
                   </p>
+                  <StarRating rating={pet.rating || 0} />
                 </div>
               </div>
             ))
