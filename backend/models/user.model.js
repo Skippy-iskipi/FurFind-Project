@@ -9,7 +9,10 @@ const userSchema = new mongoose.Schema(
 		},
 		password: {
 			type: String,
-			required: true,
+			required: function() {
+				// Password is required only if googleId is not present
+				return !this.googleId;
+			},
 		},
 		name: {
 			type: String,
@@ -44,6 +47,9 @@ const userSchema = new mongoose.Schema(
 		resetPasswordExpiresAt: Date,
 		verificationToken: String,
 		verificationTokenExpiresAt: Date,
+		googleId: {
+			type: String,
+		},
 	},
 	{ timestamps: true }
 );

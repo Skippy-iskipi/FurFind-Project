@@ -1,4 +1,5 @@
 import express from "express";
+import passport from 'passport';
 import {
 	login,
 	logout,
@@ -46,6 +47,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 import { customVerifyToken } from "../middleware/customeverifyToken.js";
 import { upload } from '../middleware/multer.js';
 import { authenticate } from "../middleware/auth.middleware.js";
+import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 
 const router = express.Router();
 
@@ -124,5 +126,25 @@ router.get('/users/search', verifyToken, searchUsers);
 
 router.post('/preferences', verifyToken, updateUserPreferences);
 router.get('/recommended-pets', verifyToken, getRecommendedPets);
+
+router.get('/google', passport.authenticate('google', {
+	scope: ['profile', 'email']
+}));
+
+router.get('/google/callback', 
+	passport.authenticate('google', { failureRedirect: '/login' }),
+	async (req, res) => {
+		try {
+			// Generate token and set cookie
+			generateTokenAndSetCookie(res, req.user._id);
+			
+			// Redirect to frontend dashboard
+			res.redirect('http://localhost:5173/dashboard');
+		} catch (error) {
+			console.error('Error in Google callback:', error);
+			res.redirect('http://localhost:5173/login?error=auth_failed');
+		}
+	}
+);
 
 export default router;
