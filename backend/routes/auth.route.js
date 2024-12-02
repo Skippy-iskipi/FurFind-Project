@@ -38,6 +38,8 @@ import {
 	getUserRatingsByUserId,
 	getAdoptedPetsByAdopter,
 	searchUsers,
+	updateUserPreferences,
+	getRecommendedPets,
 
 } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -119,5 +121,8 @@ router.get('/user-profile/:userId', verifyToken, getUserProfileById);
 router.get('/adopted-pets/:userId', verifyToken, getAdoptedPetsByAdopter);
 
 router.get('/users/search', verifyToken, searchUsers);
+
+router.post('/preferences', verifyToken, updateUserPreferences);
+router.get('/recommended-pets', verifyToken, getRecommendedPets);
 
 export default router;

@@ -9,6 +9,7 @@ import PetDetailsModal from '../components/PetDetailsModal';
 import MyApplications from '../components/MyApplications';
 import AdoptionRequest from '../components/AdoptionRequest';
 import AdoptionHistory from '../components/AdoptionHistory';
+import PreferenceModal from '../components/PreferenceModal';
 
 
 const DashboardPage = () => {
@@ -25,12 +26,14 @@ const DashboardPage = () => {
 	const [selectedBreed, setSelectedBreed] = useState('');
 	const [selectedLocation, setSelectedLocation] = useState('');
 	const [pets, setPets] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [selectedPet, setSelectedPet] = useState(null);
 	const [showVerificationPopup, setShowVerificationPopup] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [searchResults, setSearchResults] = useState([]);
 	const [showSearchResults, setShowSearchResults] = useState(false);
+	const [showPreferences, setShowPreferences] = useState(false);
+	const [recommendedPets, setRecommendedPets] = useState([]);
 
 	const handlePostPetClick = () => {
 		if (user.role === 'Adopter') {
@@ -130,6 +133,8 @@ const DashboardPage = () => {
 			if (selectedBreed) params.append('breed', selectedBreed);
 			if (selectedLocation) params.append('location', selectedLocation);
 
+			console.log('Fetching with params:', params.toString()); // Debug log
+
 			const response = await fetch(`http://localhost:5000/api/auth/pets?${params}`, {
 				method: 'GET',
 				headers: { 'Content-Type': 'application/json' },
@@ -139,6 +144,7 @@ const DashboardPage = () => {
 			const data = await response.json();
 			if (data.success) {
 				setPets(data.pets);
+				await fetchRecommendedPets();
 			} else {
 				toast.error(data.message || 'Failed to fetch pets');
 			}
@@ -149,6 +155,49 @@ const DashboardPage = () => {
 			setLoading(false);
 		}
 	};
+
+	const fetchRecommendedPets = async () => {
+		try {
+			console.log('Fetching recommended pets...'); // Debug log
+			
+			const response = await fetch('http://localhost:5000/api/auth/recommended-pets', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include'
+			});
+
+			console.log('Response status:', response.status); // Debug log
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error('Error response:', errorData); // Debug log
+				throw new Error(errorData.message || 'Failed to fetch recommended pets');
+			}
+
+			const data = await response.json();
+			console.log('Received data:', data); // Debug log
+
+			if (data.success) {
+				setRecommendedPets(data.pets || []);
+			} else {
+				throw new Error(data.message || 'Failed to fetch recommended pets');
+			}
+		} catch (error) {
+			console.error('Error fetching recommendations:', error);
+			setRecommendedPets([]); // Set empty array on error
+		}
+	};
+
+	useEffect(() => {
+		const loadData = async () => {
+			await fetchFilteredPets();
+			await fetchRecommendedPets();
+		};
+		
+		loadData();
+	}, []); // Empty dependency array if you only want to fetch once
 
 	useEffect(() => {
 		fetchFilteredPets();
@@ -300,6 +349,12 @@ const DashboardPage = () => {
 
 						{/* Right Section */}
 						<div className="flex items-center gap-4">
+							<button
+								onClick={() => setShowPreferences(true)}
+								className="text-[#7A62DC] hover:text-[#6249c7]"
+							>
+								Set Preferences
+							</button>
 							<Bell className="text-[#7A62DC]" />
 							<button onClick={() => navigate('/my-profile')}>
 								<img
@@ -466,77 +521,147 @@ const DashboardPage = () => {
 						{/* Tab Content */}
 						<div className="mt-6">
 							{activeTab === 'Available Pets' && (
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-									{loading && (
-										<div className="col-span-full flex justify-center items-center py-8">
-											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
-										</div>
-									)}
-									{loading ? (
-										<div className="col-span-full flex justify-center items-center">
-											<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
-										</div>
-									) : pets.length === 0 ? (
-										<div className="col-span-full text-center text-gray-500">
-											No pets available at the moment.
-										</div>
-									) : (
-										pets.map((pet) => (
-											<div key={pet._id} className="bg-[#D4F5F5] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
-												{/* Pet Name and Posted Time */}
-												<div className="flex justify-between items-center mb-3">
-													<h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
-													<span className="text-sm text-gray-500">
-														{formatTimeAgo(pet.createdAt)}
-													</span>
-												</div>
+								<div>
+									{recommendedPets.length > 0 && (
+										<div className="mb-8">
+											<h2 className="text-xl font-semibold mb-4">Recommended for You</h2>
+											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+												{recommendedPets.map((pet) => (
+													<div key={pet._id} className="bg-[#D4F5F5] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
+														{/* Pet Name and Posted Time */}
+														<div className="flex justify-between items-center mb-3">
+															<h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
+															<span className="text-sm text-gray-500">
+																{formatTimeAgo(pet.createdAt)}
+															</span>
+														</div>
 
-												{/* Pet Image */}
-												<div className="relative mb-3">
-													<img
-														src={pet.image}
-														alt={pet.name}
-														className="w-full h-48 object-cover rounded-lg"
-													/>
-													{/* Status Badge */}
-													<span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
-														pet.status === 'Available' 
-															? 'bg-green-500 text-white' 
-															: pet.status === 'Adopted' 
-																? 'bg-blue-500 text-white'
-																: 'bg-gray-500 text-white'
-													}`}>
-														{pet.status}
-													</span>
-												</div>
+														{/* Pet Image */}
+														<div className="relative mb-3">
+															<img
+																src={pet.image}
+																alt={pet.name}
+																className="w-full h-48 object-cover rounded-lg"
+															/>
+															{/* Recommended Badge */}
+															<span className="absolute top-2 left-2 bg-[#7A62DC] text-white px-2 py-1 rounded-full text-xs">
+																Recommended
+															</span>
+															{/* Status Badge */}
+															<span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
+																pet.status === 'Available' 
+																	? 'bg-green-500 text-white' 
+																	: pet.status === 'Adopted' 
+																		? 'bg-blue-500 text-white'
+																		: 'bg-gray-500 text-white'
+															}`}>
+																{pet.status}
+															</span>
+														</div>
 
-												{/* Pet Details */}
-												<div className="space-y-2">
-													{/* Classification Badge */}
-													<div className="flex justify-between items-center gap-2">
-														<span className="bg-[#7A62DC] text-white px-3 py-1 rounded-full text-sm">
-															{pet.classification}
-														</span>
-														<span className="text-gray-600">
-															Age: {pet.age}
-														</span>
+														{/* Pet Details */}
+														<div className="space-y-2">
+															{/* Classification Badge */}
+															<div className="flex justify-between items-center gap-2">
+																<span className="bg-[#7A62DC] text-white px-3 py-1 rounded-full text-sm">
+																	{pet.classification}
+																</span>
+																<span className="text-gray-600">
+																	Age: {pet.age}
+																</span>
+															</div>
+															<div className="flex justify-between items-center gap-2 text-gray-600">
+																<p>Breed: {pet.breed}</p>
+																<p>Location: {pet.location}</p>
+															</div>
+														</div>
+
+														{/* View Details Button */}
+														<button
+															className="w-full mt-4 bg-[#7A62DC] text-white py-2 rounded-md hover:bg-[#6249c7] transition-colors"
+															onClick={() => setSelectedPet(pet)}
+														>
+															View Details
+														</button>
 													</div>
-													<div className="flex justify-between items-center gap-2 text-gray-600">
-														<p>Breed: {pet.breed}</p>
-														<p>Location: {pet.location}</p>
-													</div>
-												</div>
-
-												{/* View Details Button */}
-												<button
-													className="w-full mt-4 bg-[#7A62DC] text-white py-2 rounded-md hover:bg-[#6249c7] transition-colors"
-													onClick={() => setSelectedPet(pet)}
-												>
-													View Details
-												</button>
+												))}
 											</div>
-										))
+										</div>
 									)}
+									
+									<h2 className="text-xl font-semibold mb-4">All Pets</h2>
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+										{loading && (
+											<div className="col-span-full flex justify-center items-center py-8">
+												<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
+											</div>
+										)}
+										{loading ? (
+											<div className="col-span-full flex justify-center items-center">
+												<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7A62DC]"></div>
+											</div>
+										) : pets.length === 0 ? (
+											<div className="col-span-full text-center text-gray-500">
+												No pets available at the moment.
+											</div>
+										) : (
+											pets.map((pet) => (
+												<div key={pet._id} className="bg-[#D4F5F5] rounded-2xl overflow-hidden p-4 hover:shadow-lg transition-shadow">
+													{/* Pet Name and Posted Time */}
+													<div className="flex justify-between items-center mb-3">
+														<h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
+														<span className="text-sm text-gray-500">
+															{formatTimeAgo(pet.createdAt)}
+														</span>
+													</div>
+
+													{/* Pet Image */}
+													<div className="relative mb-3">
+														<img
+															src={pet.image}
+															alt={pet.name}
+															className="w-full h-48 object-cover rounded-lg"
+														/>
+														{/* Status Badge */}
+														<span className={`absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium ${
+															pet.status === 'Available' 
+																? 'bg-green-500 text-white' 
+																: pet.status === 'Adopted' 
+																	? 'bg-blue-500 text-white'
+																	: 'bg-gray-500 text-white'
+														}`}>
+															{pet.status}
+														</span>
+													</div>
+
+													{/* Pet Details */}
+													<div className="space-y-2">
+														{/* Classification Badge */}
+														<div className="flex justify-between items-center gap-2">
+															<span className="bg-[#7A62DC] text-white px-3 py-1 rounded-full text-sm">
+																{pet.classification}
+															</span>
+															<span className="text-gray-600">
+																Age: {pet.age}
+															</span>
+														</div>
+														<div className="flex justify-between items-center gap-2 text-gray-600">
+															<p>Breed: {pet.breed}</p>
+															<p>Location: {pet.location}</p>
+														</div>
+													</div>
+
+													{/* View Details Button */}
+													<button
+														className="w-full mt-4 bg-[#7A62DC] text-white py-2 rounded-md hover:bg-[#6249c7] transition-colors"
+														onClick={() => setSelectedPet(pet)}
+													>
+														View Details
+													</button>
+												</div>
+											))
+										)}
+									</div>
 								</div>
 							)}
 							{activeTab === 'My Applications' && <MyApplications />}
@@ -588,6 +713,14 @@ const DashboardPage = () => {
 					</div>
 				</div>
 			)}
+
+			<PreferenceModal
+				isOpen={showPreferences}
+				onClose={() => setShowPreferences(false)}
+				onSave={() => {
+					fetchRecommendedPets();
+				}}
+			/>
 		</div>
 	);
 };

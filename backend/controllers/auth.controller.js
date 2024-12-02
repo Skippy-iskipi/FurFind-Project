@@ -9,6 +9,9 @@ import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendRe
 import Pet from "../models/pet.model.js";
 import { AdoptionApplication } from '../models/adoptionApplication.model.js';
 import Rating from '../models/Ratings.js';
+import { UserPreference } from '../models/userPreference.model.js';
+import { calculatePetScore } from '../services/recommendationService.js';
+import { getHybridRecommendations } from '../services/recommendationService.js';
 
 
 
@@ -1477,6 +1480,111 @@ export const searchUsers = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Error searching users",
+            error: error.message
+        });
+    }
+};
+
+export const updateUserPreferences = async (req, res) => {
+    try {
+        console.log('Received request body:', req.body); // Debug log
+        
+        const { preferences } = req.body;
+        const userId = req.userId;
+
+        if (!preferences) {
+            return res.status(400).json({
+                success: false,
+                message: "Preferences are required"
+            });
+        }
+
+        // Validate preferences
+        if (!preferences.petType || !Array.isArray(preferences.agePreferences)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid preferences format"
+            });
+        }
+
+        let userPreference = await UserPreference.findOne({ userId });
+        
+        if (!userPreference) {
+            userPreference = new UserPreference({
+                userId,
+                preferences: {
+                    petType: preferences.petType,
+                    agePreferences: preferences.agePreferences,
+                    // Add other fields as needed
+                }
+            });
+        } else {
+            userPreference.preferences = {
+                ...userPreference.preferences,
+                ...preferences
+            };
+            userPreference.lastUpdated = new Date();
+        }
+
+        console.log('Saving preferences:', userPreference); // Debug log
+
+        await userPreference.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Preferences updated successfully",
+            preferences: userPreference
+        });
+    } catch (error) {
+        console.error('Error in updateUserPreferences:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating preferences",
+            error: error.message
+        });
+    }
+};
+
+export const getRecommendedPets = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const userPreference = await UserPreference.findOne({ userId });
+        
+        // Get base query for available pets
+        const query = { status: 'Available' };
+        if (userPreference?.preferences?.petType !== 'Both') {
+            query.classification = userPreference.preferences.petType;
+        }
+
+        const pets = await Pet.find(query);
+        
+        if (!pets.length) {
+            return res.status(200).json({ success: true, pets: [] });
+        }
+
+        // Get hybrid scoring function
+        const getScore = await getHybridRecommendations(userId, userPreference?.preferences);
+
+        // Score and sort pets
+        const scoredPets = await Promise.all(pets.map(async (pet) => ({
+            ...pet.toObject(),
+            score: await getScore(pet)
+        })));
+
+        const recommendedPets = scoredPets
+            .filter(pet => pet.score > 0.5)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10);
+
+        res.status(200).json({
+            success: true,
+            pets: recommendedPets
+        });
+    } catch (error) {
+        console.error('Error in getRecommendedPets:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error getting recommendations",
             error: error.message
         });
     }
