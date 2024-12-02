@@ -86,7 +86,7 @@ const RatingsFeedback = ({ userRole }) => {
               <img
                 src={feedback.adopterId.profilePicture || '/images/default-profile.jpg'}
                 alt="User"
-                className="w-10 h-10 rounded-full mr-2"
+                className="w-10 h-10 rounded-full mr-4"
               />
               <div>
                 <h3 className="font-bold">{feedback.adopterId.name}</h3>
@@ -96,7 +96,7 @@ const RatingsFeedback = ({ userRole }) => {
                 </div>
               </div>
             </div>
-            <p className="text-gray-600 text-left">{feedback.feedback}</p>
+            <p className="text-gray-600 text-left ml-14">{feedback.feedback}</p>
             <div className="text-right text-[#222222] relative bottom-20">
               {new Date(feedback.createdAt).toLocaleDateString('en-US', {
                 year: 'numeric',

@@ -5,10 +5,13 @@ import ApplicationDetailsModal from './ApplicationDetailsModal';
 import { formatTimeAgo } from '../utils/dateUtils';
 
 const UserAdoptedPets = ({ userId, token }) => {
-  const [adoptedPets, setAdoptedPets] = useState([]);
+  const [adoptedByUser, setAdoptedByUser] = useState([]);
+  const [adoptedFromUser, setAdoptedFromUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('adopted_by_user');
+  const [userData, setUserData] = useState(null);
 
   const fetchAdoptedPets = async () => {
     try {
@@ -24,7 +27,8 @@ const UserAdoptedPets = ({ userId, token }) => {
       );
 
       if (response.data.success) {
-        setAdoptedPets(response.data.pets || []);
+        setAdoptedByUser(response.data.applications.adoptedByMe || []);
+        setAdoptedFromUser(response.data.applications.adoptedFromMe || []);
       } else {
         console.error('Failed to fetch adopted pets:', response.data.message);
       }
@@ -36,8 +40,29 @@ const UserAdoptedPets = ({ userId, token }) => {
     }
   };
 
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/auth/user/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        setUserData(response.data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
   useEffect(() => {
     if (userId) {
+      fetchUserData();
       fetchAdoptedPets();
     }
   }, [userId]);
@@ -52,39 +77,114 @@ const UserAdoptedPets = ({ userId, token }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {adoptedPets.length === 0 ? (
-          <div className="col-span-full text-center text-gray-500">
-            No adopted pets found
+      {/* Tabs */}
+      <div className="flex space-x-4 mb-8 border-b border-gray-200">
+        <button
+          className={`pb-4 px-4 text-lg font-semibold relative ${
+            activeTab === 'adopted_by_user'
+              ? 'text-[#7A62DC] border-b-2 border-[#7A62DC]'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('adopted_by_user')}
+        >
+          <div className="flex items-center">
+            <p>Adopted by <span className="font-bold">{userData?.name || 'User'}</span></p>
+            {adoptedByUser.length > 0 && (
+              <span className="ml-2 bg-[#7A62DC] text-white rounded-full px-2 py-1 text-xs">
+                {adoptedByUser.length}
+              </span>
+            )}
           </div>
-        ) : (
-          adoptedPets.map((pet) => (
-            <div key={pet._id} className="bg-[#E0F4F4] rounded-2xl overflow-hidden p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-medium text-gray-800">{pet.name}</h3>
-                <span className="text-sm text-gray-500">
-                  {formatTimeAgo(pet.createdAt)}
-                </span>
-              </div>
-              <div className="relative mb-3">
-                <img
-                  src={pet.image}
-                  alt={pet.name}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <span className="absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium bg-[#3B82F6] text-white">
-                  Adopted
-                </span>
-              </div>
-              <div className="mt-2">
-                <p className="text-gray-600 text-left">
-                  Adopted by: <span className="text-[#7A62DC] font-bold">{pet.userId.name}</span>
-                </p>
-              </div>
-            </div>
-          ))
-        )}
+        </button>
+        <button
+          className={`pb-4 px-4 text-lg font-semibold relative ${
+            activeTab === 'adopted_from_user'
+              ? 'text-[#7A62DC] border-b-2 border-[#7A62DC]'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('adopted_from_user')}
+        >
+          Adopted From Them
+          {adoptedFromUser.length > 0 && (
+            <span className="ml-2 bg-[#7A62DC] text-white rounded-full px-2 py-1 text-xs">
+              {adoptedFromUser.length}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Content based on active tab */}
+      {activeTab === 'adopted_by_user' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {adoptedByUser.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500 py-12">
+              No pets adopted yet
+            </div>
+          ) : (
+            adoptedByUser.map((pet) => (
+              <div key={pet.id} className="bg-[#E0F4F4] rounded-2xl overflow-hidden p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-medium text-gray-800">{pet.petName}</h3>
+                  <span className="text-sm text-gray-500">
+                    {formatTimeAgo(pet.dateAdopted)}
+                  </span>
+                </div>
+                <div className="relative mb-3">
+                  <img
+                    src={pet.petImage}
+                    alt={pet.petName}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <span className="absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium bg-[#3B82F6] text-white">
+                    Adopted
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <p className="text-gray-600 text-left">
+                    Previous Owner: <span className="text-[#7A62DC] font-bold">{pet.ownerName}</span>
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {activeTab === 'adopted_from_user' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {adoptedFromUser.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500 py-12">
+              None of their pets have been adopted yet
+            </div>
+          ) : (
+            adoptedFromUser.map((pet) => (
+              <div key={pet.id} className="bg-[#E0F4F4] rounded-2xl overflow-hidden p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-medium text-gray-800">{pet.petName}</h3>
+                  <span className="text-sm text-gray-500">
+                    {formatTimeAgo(pet.dateAdopted)}
+                  </span>
+                </div>
+                <div className="relative mb-3">
+                  <img
+                    src={pet.petImage}
+                    alt={pet.petName}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <span className="absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium bg-[#3B82F6] text-white">
+                    Adopted
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <p className="text-gray-600 text-left">
+                    Adopted by: <span className="text-[#7A62DC] font-bold">{pet.adopterName}</span>
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {selectedApplication && (
         <ApplicationDetailsModal

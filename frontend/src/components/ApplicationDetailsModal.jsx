@@ -280,20 +280,24 @@ const ApplicationDetailsModal = ({ isOpen, onClose, application, onActionComplet
                                         </div>
                                         <div className="flex gap-2">
                                             <p className="text-gray-600">Ratings:</p>
-                                            {ratings && ratings.length > 0 ? (
-                                                <button
-                                                    onClick={() => setIsRatingModalOpen(true)}
-                                                    className="text-[#7A62DC] underline"
-                                                >
-                                                    View Ratings
-                                                </button>
+                                            {status === 'Completed' ? (
+                                                ratings && ratings.length > 0 ? (
+                                                    <button
+                                                        onClick={() => setIsRatingModalOpen(true)}
+                                                        className="text-[#7A62DC] underline"
+                                                    >
+                                                        View Ratings
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setIsRatingModalOpen(true)}
+                                                        className="text-[#7A62DC] underline"
+                                                    >
+                                                        Rate
+                                                    </button>
+                                                )
                                             ) : (
-                                                <button
-                                                    onClick={() => setIsRatingModalOpen(true)}
-                                                    className="text-[#7A62DC] underline"
-                                                >
-                                                    Rate
-                                                </button>
+                                                <span className="text-gray-500">Available after completion</span>
                                             )}
                                         </div>
                                     </div>

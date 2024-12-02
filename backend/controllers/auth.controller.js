@@ -506,25 +506,65 @@ export const getAdoptedPets = async (req, res) => {
     try {
         const userId = req.userId;
 
-        const pets = await Pet.find({ 
+        // Find completed adoption applications where user is the adopter
+        const adoptedByUser = await AdoptionApplication.find({
+            userId,
+            status: 'Completed'
+        })
+        .populate({
+            path: 'petId',
+            select: 'name image userId',
+            populate: {
+                path: 'userId',
+                select: 'name'
+            }
+        })
+        .sort({ createdAt: -1 });
+
+        // Find pets posted by user that were adopted
+        const adoptedFromUser = await Pet.find({
             userId,
             status: 'Adopted'
         })
-            .populate({
-                path: 'userId',
-                select: 'name profilePicture'
-            })
-            .sort({ createdAt: -1 });
+        .populate({
+            path: 'userId',
+            select: 'name'
+        });
 
-        if (!pets.length) {
-            return res.status(404).json({
-                success: false,
-            });
-        }
+        // Get adoption details for pets adopted from user
+        const adoptionDetailsPromises = adoptedFromUser.map(pet => 
+            AdoptionApplication.findOne({
+                petId: pet._id,
+                status: 'Completed'
+            }).populate('userId', 'name')
+        );
+        const adoptionDetails = await Promise.all(adoptionDetailsPromises);
+
+        // Format the responses
+        const petsAdoptedByUser = adoptedByUser.map(app => ({
+            id: app._id,
+            petName: app.petId.name,
+            petImage: app.petId.image,
+            ownerName: app.petId.userId.name,
+            dateAdopted: app.completedAt || app.updatedAt,
+            type: 'adopted_by_me'
+        }));
+
+        const petsAdoptedFromUser = adoptedFromUser.map((pet, index) => ({
+            id: adoptionDetails[index]?._id,
+            petName: pet.name,
+            petImage: pet.image,
+            adopterName: adoptionDetails[index]?.userId?.name,
+            dateAdopted: adoptionDetails[index]?.completedAt || adoptionDetails[index]?.updatedAt,
+            type: 'adopted_from_me'
+        }));
 
         res.status(200).json({
             success: true,
-            pets
+            applications: {
+                adoptedByMe: petsAdoptedByUser,
+                adoptedFromMe: petsAdoptedFromUser
+            }
         });
     } catch (error) {
         console.error('Error fetching adopted pets:', error);
@@ -1339,26 +1379,65 @@ export const getAdoptedPetsByAdopter = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const pets = await Pet.find({ 
+    // Find completed adoption applications where user is the adopter
+    const adoptedByUser = await AdoptionApplication.find({
+      userId,
+      status: 'Completed'
+    })
+    .populate({
+      path: 'petId',
+      select: 'name image userId',
+      populate: {
+        path: 'userId',
+        select: 'name'
+      }
+    })
+    .sort({ createdAt: -1 });
+
+    // Find pets posted by user that were adopted
+    const adoptedFromUser = await Pet.find({
       userId,
       status: 'Adopted'
     })
     .populate({
       path: 'userId',
-      select: 'name profilePicture'
-    })
-    .sort({ createdAt: -1 });
+      select: 'name'
+    });
 
-    if (!pets.length) {
-      return res.status(200).json({
-        success: true,
-        pets: [] 
-      });
-    }
+    // Get adoption details for pets adopted from user
+    const adoptionDetailsPromises = adoptedFromUser.map(pet => 
+      AdoptionApplication.findOne({
+        petId: pet._id,
+        status: 'Completed'
+      }).populate('userId', 'name')
+    );
+    const adoptionDetails = await Promise.all(adoptionDetailsPromises);
+
+    // Format the responses
+    const petsAdoptedByUser = adoptedByUser.map(app => ({
+      id: app._id,
+      petName: app.petId.name,
+      petImage: app.petId.image,
+      ownerName: app.petId.userId.name,
+      dateAdopted: app.completedAt || app.updatedAt,
+      type: 'adopted_by_me'
+    }));
+
+    const petsAdoptedFromUser = adoptedFromUser.map((pet, index) => ({
+      id: adoptionDetails[index]?._id,
+      petName: pet.name,
+      petImage: pet.image,
+      adopterName: adoptionDetails[index]?.userId?.name,
+      dateAdopted: adoptionDetails[index]?.completedAt || adoptionDetails[index]?.updatedAt,
+      type: 'adopted_from_me'
+    }));
 
     res.status(200).json({
       success: true,
-      pets
+      applications: {
+        adoptedByMe: petsAdoptedByUser,
+        adoptedFromMe: petsAdoptedFromUser
+      }
     });
   } catch (error) {
     console.error('Error fetching adopted pets:', error);
