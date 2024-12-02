@@ -11,7 +11,6 @@ const LandingPage = () => {
   const [isShelterOpen, setIsShelterOpen] = useState(false);
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [feedbackData, setFeedbackData] = useState([]);
   const [activeFaq, setActiveFaq] = useState(null);
 
   const faqs = [
@@ -634,7 +633,10 @@ const LandingPage = () => {
 
 
               <div className="space-y-4 mt-12">
-                <button className="w-full bg-[#7A62DC] text-white py-3 rounded-lg hover:bg-[#6952bd] transition-colors">
+                <button 
+                  onClick={() => navigate('/signup')} 
+                  className="w-full bg-[#7A62DC] text-white py-3 rounded-lg hover:bg-[#6952bd] transition-colors"
+                >
                   Create Account
                 </button>
                 <button className="w-full bg-white text-[#7A62DC] py-3 rounded-lg border border-[#7A62DC] hover:bg-gray-50 transition-colors">
