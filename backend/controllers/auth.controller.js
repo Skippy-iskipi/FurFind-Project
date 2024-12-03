@@ -766,7 +766,7 @@ export const getApplicationDetails = async (req, res) => {
 export const getAllUsers = async (_, res) => {
     try {
         const users = await User.find({ email: { $ne: "furfindadmin@furfind.com" } })
-            .select('name email profilePicture');
+            .select('name email profilePicture role');
         res.status(200).json({
             success: true,
             users,
@@ -783,32 +783,41 @@ export const getAllUsers = async (_, res) => {
 
 export const getVerificationApplications = async (_, res) => {
     try {
-        // Remove the status filter to get all Pet Owner applications
+        // Get all Pet Owner applications
         const applications = await VerificationApplication.find({ 
             type: 'Pet Owner'
-        }).populate('userId', 'name email profilePicture');
+        }).populate({
+            path: 'userId',
+            select: 'name email profilePicture googleUser googleId'
+        });
 
-        const formattedApplications = applications.map(app => ({
-            id: app._id,
-            name: app.userId.name,
-            email: app.userId.email,
-            profilePicture: app.userId.profilePicture,
-            submittedDate: app.submittedAt,
-            type: app.type,
-            status: app.status,
-            address: app.formData.address,
-            contactNumber: app.formData.contactNumber,
-            occupation: app.formData.occupation,
-            emergencyFirstName: app.formData.emergencyFirstName,
-            emergencyLastName: app.formData.emergencyLastName,
-            emergencyAddress: app.formData.emergencyAddress,
-            emergencyContact: app.formData.emergencyContact,
-            governmentId: app.formData.governmentId,
-            proofOfResidence: app.formData.proofOfResidence,
-            petCareExperience: app.formData.petCareExperience
-        }));
+        const formattedApplications = applications
+            .filter(app => {
+                // Skip admin user
+                const userEmail = app.userId?.googleUser?.email || app.userId?.email;
+                return userEmail !== 'furfindadmin@furfind.com';
+            })
+            .map(app => ({
+                id: app._id,
+                name: app.userId?.googleUser?.name || app.userId?.name,
+                email: app.userId?.googleUser?.email || app.userId?.email,
+                profilePicture: app.userId?.googleUser?.picture || app.userId?.profilePicture,
+                submittedDate: app.submittedAt,
+                type: app.type,
+                status: app.status,
+                address: app.formData.address,
+                contactNumber: app.formData.contactNumber,
+                occupation: app.formData.occupation,
+                emergencyFirstName: app.formData.emergencyFirstName,
+                emergencyLastName: app.formData.emergencyLastName,
+                emergencyAddress: app.formData.emergencyAddress,
+                emergencyContact: app.formData.emergencyContact,
+                governmentId: app.formData.governmentId,
+                proofOfResidence: app.formData.proofOfResidence,
+                petCareExperience: app.formData.petCareExperience
+            }));
 
-        console.log('Fetched applications:', formattedApplications); // Debug log
+        console.log('Fetched applications:', formattedApplications);
 
         res.status(200).json({
             success: true,
@@ -869,7 +878,7 @@ export const approveVerificationApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
         
-        console.log('Approving application:', applicationId); // Debug log
+        console.log('Approving application:', applicationId);
         
         if (!applicationId) {
             return res.status(400).json({
@@ -878,7 +887,6 @@ export const approveVerificationApplication = async (req, res) => {
             });
         }
 
-        // Find the verification application
         const application = await VerificationApplication.findById(applicationId);
         
         if (!application) {
@@ -888,7 +896,6 @@ export const approveVerificationApplication = async (req, res) => {
             });
         }
 
-        // Find the user
         const user = await User.findById(application.userId);
         if (!user) {
             return res.status(404).json({
@@ -897,17 +904,22 @@ export const approveVerificationApplication = async (req, res) => {
             });
         }
 
-        // Update user role based on application type
         const newRole = application.type === 'Pet Owner' ? 'Pet Owner' : 'Animal Shelter';
         
-        // Update user role
         await User.findByIdAndUpdate(application.userId, {
             role: newRole
         });
 
-        // Update application status
         application.status = 'Approved';
         await application.save();
+
+        // Create notification for the user
+        await createNotification(
+            application.userId,
+            'VERIFICATION_STATUS',
+            `Your ${application.type} verification application has been approved!`,
+            applicationId
+        );
 
         res.status(200).json({
             success: true,
@@ -928,7 +940,6 @@ export const rejectVerificationApplication = async (req, res) => {
     try {
         const { applicationId } = req.params;
         
-        // Find the verification application
         const application = await VerificationApplication.findById(applicationId);
         
         if (!application) {
@@ -940,6 +951,14 @@ export const rejectVerificationApplication = async (req, res) => {
 
         application.status = 'Rejected';
         await application.save();
+
+        // Create notification for the user
+        await createNotification(
+            application.userId,
+            'VERIFICATION_STATUS',
+            `Your ${application.type} verification application has been rejected.`,
+            applicationId
+        );
 
         res.status(200).json({
             success: true,
@@ -1298,7 +1317,9 @@ export const completeAdoptionRequest = async (req, res) => {
     try {
         const { applicationId } = req.params;
 
-        const application = await AdoptionApplication.findById(applicationId);
+        const application = await AdoptionApplication.findById(applicationId)
+            .populate('petId', 'name userId')
+            .populate('userId', 'name');
         
         if (!application) {
             return res.status(404).json({
@@ -1320,7 +1341,25 @@ export const completeAdoptionRequest = async (req, res) => {
         await application.save();
 
         // Update the pet's status to Adopted
-        await Pet.findByIdAndUpdate(application.petId, { status: 'Adopted' });
+        await Pet.findByIdAndUpdate(application.petId._id, { status: 'Adopted' });
+
+        // Create notifications for both parties
+        await Promise.all([
+            // Notification for the adopter
+            createNotification(
+                application.userId._id,
+                'ADOPTION_STATUS',
+                `Congratulations! Your adoption of ${application.petId.name} is now complete.`,
+                applicationId
+            ),
+            // Notification for the pet owner
+            createNotification(
+                application.petId.userId,
+                'ADOPTION_STATUS',
+                `The adoption of ${application.petId.name} by ${application.userId.name} has been completed.`,
+                applicationId
+            )
+        ]);
 
         res.status(200).json({
             success: true,

@@ -20,6 +20,46 @@ export const useAuthStore = create((set) => ({
 
 	set: (newState) => set((state) => ({ ...state, ...newState })),
 
+	handleGoogleCallback: async (token) => {
+		set({ isLoading: true, error: null });
+		try {
+			if (!token) {
+				throw new Error('No token provided');
+			}
+
+			// Store the token
+			localStorage.setItem('token', token);
+
+			// Verify the token and get user data
+			const response = await axios.get(`${API_URL}/verify-google`, {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
+
+			const userData = response.data.user;
+			
+			// Store user data
+			localStorage.setItem('user', JSON.stringify(userData));
+
+			set({
+				isAuthenticated: true,
+				user: userData,
+				error: null,
+				isLoading: false
+			});
+
+			return true;
+		} catch (error) {
+			console.error('Google auth error:', error);
+			set({
+				error: error.response?.data?.message || "Error with Google authentication",
+				isLoading: false
+			});
+			return false;
+		}
+	},
+
 	signup: async (email, password, name) => {
 		set({ isLoading: true, error: null });
 		try {
@@ -74,13 +114,13 @@ export const useAuthStore = create((set) => ({
 	},
 
 	logout: async () => {
-		set({ isLoading: true, error: null });
+		localStorage.removeItem('token');
+		localStorage.removeItem('user');
+		set({ user: null, isAuthenticated: false, error: null, isLoading: false });
 		try {
 			await axios.post(`${API_URL}/logout`);
-			set({ user: null, isAuthenticated: false, error: null, isLoading: false });
 		} catch (error) {
-			set({ error: "Error logging out", isLoading: false });
-			throw error;
+			console.error('Error during logout:', error);
 		}
 	},
 	verifyEmail: async (code) => {

@@ -90,18 +90,23 @@ const VerificationApplication = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const decoded = parseJwt(token);
-            const userId = decoded ? decoded.userId : null;
+            const userData = localStorage.getItem('user');
+            const user = userData ? JSON.parse(userData) : null;
 
-            if (!userId) {
-                alert('User ID is missing');
+            if (!user) {
+                alert('Please log in again');
                 return;
             }
 
             const data = new FormData();
             data.append('type', formType);
-            data.append('userId', userId);
+            
+            // If user has googleId, use that, otherwise use regular _id
+            if (user.googleId) {
+                data.append('googleId', user.googleId);
+            } else {
+                data.append('userId', user._id);
+            }
 
             // Append form data based on type
             if (formType === 'Pet Owner') {
@@ -115,6 +120,7 @@ const VerificationApplication = () => {
                 data.append('petCareExperience', formData.petCareExperience);
                 data.append('certifyInformation', formData.certifyInformation);
                 data.append('agreeToGuidelines', formData.agreeToGuidelines);
+                
                 if (formData.governmentId && formData.governmentId.length > 0) {
                     data.append('governmentId', formData.governmentId[0]);
                 }
@@ -129,6 +135,7 @@ const VerificationApplication = () => {
                 data.append('shelterAddress', formData.shelterAddress);
                 data.append('shelterContact', formData.shelterContact);
                 data.append('organizationalBackground', formData.organizationalBackground);
+                
                 if (formData.registrationCertificate && formData.registrationCertificate.length > 0) {
                     data.append('registrationCertificate', formData.registrationCertificate[0]);
                 }
@@ -146,7 +153,7 @@ const VerificationApplication = () => {
             clearForm();
             setIsModalOpen(true);
         } catch (error) {
-            console.error(error);
+            console.error('Submission error:', error);
             alert('Error submitting application');
         }
     };

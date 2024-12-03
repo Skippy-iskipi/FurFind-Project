@@ -4,6 +4,7 @@ import VerificationReviewModal from '../components/VerificationReviewModal';
 import ShelterModal from '../components/ShelterModal';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import UserInfoModal from '../components/UserInfoModal';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('userManagement');
@@ -18,6 +19,10 @@ const AdminDashboard = () => {
     const [applications, setApplications] = useState([]);
     const [statusFilter, setStatusFilter] = useState('Pending');
     const [userSearchQuery, setUserSearchQuery] = useState('');
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [unreadApplications, setUnreadApplications] = useState(0);
+    const [unreadShelterApplications, setUnreadShelterApplications] = useState(0);
 
     const handleLogout = async () => {
         try {
@@ -97,6 +102,45 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchUnreadApplicationsCount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            // Fetch Pet Owner Applications count
+            const petOwnerResponse = await fetch('http://localhost:5000/api/auth/verification-applications', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const petOwnerData = await petOwnerResponse.json();
+            
+            // Fetch Animal Shelter Applications count
+            const shelterResponse = await fetch('http://localhost:5000/api/auth/animal-shelter-applications', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            const shelterData = await shelterResponse.json();
+
+            if (petOwnerData.success) {
+                const pendingPetOwners = petOwnerData.applications.filter(app => app.status === 'Pending').length;
+                setUnreadApplications(pendingPetOwners);
+            }
+            
+            if (shelterData.success) {
+                const pendingShelters = shelterData.applications.filter(app => app.status === 'Pending').length;
+                setUnreadShelterApplications(pendingShelters);
+            }
+        } catch (error) {
+            console.error('Error fetching unread applications:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadApplicationsCount();
+    }, []);
+
     useEffect(() => {
         if (activeTab === 'userManagement') {
             fetchUsers();
@@ -110,22 +154,22 @@ const AdminDashboard = () => {
     const filteredApplications = activeTab === 'petOwnerApplications'
         ? (petOwnerApplications || [])
             .filter(application => 
-                application?.status === statusFilter
+                application.status === statusFilter
             )
             .filter(application =>
                 !searchQuery || (
-                    (application?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                    (application.googleUser?.name || application.formData?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (application.googleUser?.email || application.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
                 )
             )
         : (animalShelterApplications || [])
             .filter(application => 
-                application?.status === statusFilter
+                application.status === statusFilter
             )
             .filter(application =>
                 !searchQuery || (
-                    (application?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (application?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+                    (application.formData?.organizationName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (application.formData?.email || '').toLowerCase().includes(searchQuery.toLowerCase())
                 )
             );
 
@@ -167,6 +211,11 @@ const AdminDashboard = () => {
         user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
     );
 
+    const handleUserClick = (user) => {
+        setSelectedUser(user);
+        setIsUserModalOpen(true);
+    };
+
     return (
         <div className="flex flex-col h-screen">
             {/* Header */}
@@ -199,6 +248,11 @@ const AdminDashboard = () => {
                         onClick={() => setActiveTab('petOwnerApplications')}
                     >
                         Pet Owner Applications
+                        {unreadApplications > 0 && (
+                            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {unreadApplications}
+                            </span>
+                        )}
                         {activeTab === 'petOwnerApplications' && (
                             <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#7A62DC]"></span>
                         )}
@@ -208,6 +262,11 @@ const AdminDashboard = () => {
                         onClick={() => setActiveTab('animalShelterApplications')}
                     >
                         Animal Shelter Applications
+                        {unreadShelterApplications > 0 && (
+                            <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {unreadShelterApplications}
+                            </span>
+                        )}
                         {activeTab === 'animalShelterApplications' && (
                             <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#7A62DC]"></span>
                         )}
@@ -230,17 +289,24 @@ const AdminDashboard = () => {
                         <div className="border rounded-md p-4">
                             {filteredUsers.length > 0 ? (
                                 filteredUsers.map(user => (
-                                    <div key={user.email} className="p-2 border-b flex items-center">
-                                        <img
-                                            src={user.profilePicture || './images/default-profile.jpg'}
-                                            alt={`${user.name}'s profile`}
-                                            className="h-10 w-10 rounded-full mr-2"
-                                        />
-                                        <div>
-                                            <h3 className="font-semibold">{user.name}</h3>
-                                            <p>{user.email}</p>
+                                    <button
+                                        key={user.email}
+                                        className="w-full text-left p-2 border-b hover:bg-gray-50 transition-colors"
+                                        onClick={() => handleUserClick(user)}
+                                    >
+                                        <div className="flex items-center">
+                                            <img
+                                                src={user.profilePicture || './images/default-profile.jpg'}
+                                                alt={`${user.name}'s profile`}
+                                                className="h-10 w-10 rounded-full mr-2"
+                                            />
+                                            <div>
+                                                <h3 className="font-semibold">{user.name}</h3>
+                                                <p>{user.email}</p>
+                                                <p className="text-sm text-gray-500 capitalize">{user.role}</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-gray-500">
@@ -290,59 +356,63 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="border rounded-md p-4">
-                            {filteredApplications.length > 0 ? (
-                                filteredApplications.map(application => (
-                                    <div key={application.id} className="p-4 border-b last:border-b-0 flex items-center justify-between">
-                                        <div className="flex items-center flex-1">
-                                            <img
-                                                src={application.profilePicture || '/images/default-profile.jpg'}
-                                                alt={`${application.name}'s profile`}
-                                                className="h-16 w-16 rounded-full object-cover mr-5"
-                                            />
-                                            <div className='font-opensans'>
-                                                <h3 className="font-semibold text-md">
-                                                    {application.name}
-                                                </h3>
-                                                <p className="text-gray-600">{application.email}</p>
-                                                <p className="text-gray-500 text-sm">
-                                                    Submitted: {new Date(application.submittedDate).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`px-4 py-1.5 rounded-full text-sm ${
-                                                application.status === 'Pending' 
-                                                    ? 'bg-[#FFF4E5] text-[#FF9800]'
-                                                    : application.status === 'Approved'
-                                                    ? 'bg-[#E2F8F5] text-[#0C8577]'
-                                                    : 'bg-[#FFE7E7] text-[#E53535]'
-                                            }`}>
-                                                {application.status}
-                                            </span>
-                                            {application.status === 'Pending' && (
-                                                <button 
-                                                    className='font-medium border-2 border-[#7A62DC] py-2 px-4 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors duration-200'
-                                                    onClick={() => handleReviewClick(application)}
-                                                >
-                                                    Review Application
-                                                </button>
-                                            )}
+                        {filteredApplications.length > 0 ? (
+                            filteredApplications.map((application) => (
+                                <div key={application.id} className="p-4 border-b last:border-b-0 flex items-center justify-between">
+                                    <div className="flex items-center flex-1">
+                                        <img
+                                            src={application.profilePicture || '/images/default-profile.jpg'}
+                                            alt={`${application.name}'s profile`}
+                                            className="h-16 w-16 rounded-full object-cover mr-5"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = '/images/default-profile.jpg';
+                                            }}
+                                        />
+                                        <div className='font-opensans'>
+                                            <h3 className="font-semibold text-md">
+                                                {application.name || 'No Name Available'}
+                                            </h3>
+                                            <p className="text-gray-600">{application.email || 'No Email Available'}</p>
+                                            <p className="text-gray-500 text-sm">
+                                                Submitted: {new Date(application.submittedDate).toLocaleDateString()}
+                                            </p>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 text-gray-500">
-                                    No {statusFilter.toLowerCase()} applications found
+                                    <div className="flex items-center gap-4">
+                                        <span className={`px-4 py-1.5 rounded-full text-sm ${
+                                            application.status === 'Pending' 
+                                                ? 'bg-[#FFF4E5] text-[#FF9800]'
+                                                : application.status === 'Approved'
+                                                ? 'bg-[#E2F8F5] text-[#0C8577]'
+                                                : 'bg-[#FFE7E7] text-[#E53535]'
+                                        }`}>
+                                            {application.status}
+                                        </span>
+                                        {application.status === 'Pending' && (
+                                            <button 
+                                                className='font-medium border-2 border-[#7A62DC] py-2 px-4 rounded-md text-[#7A62DC] hover:bg-[#7A62DC] hover:text-white transition-colors duration-200'
+                                                onClick={() => handleReviewClick(application)}
+                                            >
+                                                Review Application
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            )}
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                No {statusFilter.toLowerCase()} applications found
+                            </div>
+                        )}
                         </div>
                         <div className="flex justify-end mt-6 gap-2">
                             {[1, 2, 3].map((page) => (
                                 <button
                                     key={`page-${page}`}
                                     className={`px-4 py-2 ${
-                                        page === 1 
-                                            ? 'bg-[#7A62DC] text-white' 
+                                        page === 1
+                                            ? 'bg-[#7A62DC] text-white'
                                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                     } rounded-md`}
                                 >
@@ -375,6 +445,12 @@ const AdminDashboard = () => {
                     onActionComplete={fetchAnimalShelterApplications}
                 />
             )}
+
+            <UserInfoModal
+                isOpen={isUserModalOpen}
+                onClose={() => setIsUserModalOpen(false)}
+                user={selectedUser}
+            />
         </div>
     );
 };

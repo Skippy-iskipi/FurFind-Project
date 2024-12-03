@@ -50,6 +50,8 @@ import { customVerifyToken } from "../middleware/customeverifyToken.js";
 import { upload } from '../middleware/multer.js';
 import { authenticate } from "../middleware/auth.middleware.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import jwt from 'jsonwebtoken';
+import { User } from '../models/user.model.js';
 
 const router = express.Router();
 
@@ -141,16 +143,67 @@ router.get('/google/callback',
 	passport.authenticate('google', { failureRedirect: '/login' }),
 	async (req, res) => {
 		try {
-			// Generate token and set cookie
-			generateTokenAndSetCookie(res, req.user._id);
+			const user = req.user;
 			
-			// Redirect to frontend dashboard
-			res.redirect('http://localhost:5173/dashboard');
+			// Create token with necessary user info
+			const token = jwt.sign(
+				{ 
+					userId: user._id,
+					email: user.email,
+					googleId: user.googleId
+				},
+				process.env.JWT_SECRET,
+				{ expiresIn: '30d' }
+			);
+
+			// Store token in cookie
+			res.cookie('token', token, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'lax',
+				maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+			});
+
+			// Also send token in URL for immediate frontend access
+			const userDataStr = encodeURIComponent(JSON.stringify({
+				_id: user._id,
+				name: user.name,
+				email: user.email,
+				googleId: user.googleId,
+				profilePicture: user.profilePicture || ''
+			}));
+
+			// Redirect with both token and user data
+			res.redirect(`http://localhost:5173/auth/google/callback?token=${token}&userData=${userDataStr}`);
+
 		} catch (error) {
 			console.error('Error in Google callback:', error);
 			res.redirect('http://localhost:5173/login?error=auth_failed');
 		}
 	}
 );
+
+// Add a verify endpoint for Google users
+router.get('/verify-google', verifyToken, async (req, res) => {
+	try {
+		const user = await User.findById(req.user.userId);
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+		
+		res.json({
+			user: {
+				_id: user._id,
+				name: user.name,
+				email: user.email,
+				googleId: user.googleId,
+				profilePicture: user.profilePicture
+			}
+		});
+	} catch (error) {
+		console.error('Error verifying Google user:', error);
+		res.status(500).json({ message: 'Error verifying user' });
+	}
+});
 
 export default router;

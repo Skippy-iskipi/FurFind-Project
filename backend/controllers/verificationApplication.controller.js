@@ -27,11 +27,18 @@ export const submitVerificationApplication = [
     ]),
     async (req, res) => {
         try {
-            const { type, userId, ...formData } = req.body;
+            const { type, userId, googleId, ...formData } = req.body;
 
-            if (!type || !userId) {
-                console.error('Missing fields:', { type, formData, userId });
-                return res.status(400).json({ success: false, message: 'All fields are required' });
+            // Find the user either by regular ID or Google ID
+            let user;
+            if (googleId) {
+                user = await User.findOne({ googleId: googleId });
+            } else {
+                user = await User.findById(userId);
+            }
+
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
             }
 
             // Include file paths in formData
@@ -51,7 +58,7 @@ export const submitVerificationApplication = [
             const verificationApplication = new VerificationApplication({
                 type,
                 formData,
-                userId,
+                userId: user._id,
             });
 
             await verificationApplication.save();

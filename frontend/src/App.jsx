@@ -15,6 +15,7 @@ import AdoptionApplication from './pages/AdoptionApplication'
 import AdminDashboard from './pages/AdminDashboard'
 import UserProfilePage from './pages/UserProfilePage'
 import LandingPage from './pages/LandingPage'
+import GoogleCallback from './pages/GoogleCallback'
 
 
 
@@ -131,6 +132,8 @@ function App() {
 						</ProtectedRoute>
 					}
 				/>
+
+				<Route path="/auth/google/callback" element={<GoogleCallback />} />
 
 				{/* catch all routes */}
 				<Route path='*' element={<Navigate to='/' replace />} />
